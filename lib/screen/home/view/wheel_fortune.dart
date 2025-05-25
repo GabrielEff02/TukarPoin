@@ -17,16 +17,16 @@ class _SpiningWheel extends State<SpiningWheel>
     with SingleTickerProviderStateMixin {
   // Data
   List<double> sectors = [
-    10000,
-    175000,
-    250000,
-    50000,
-    200000,
-    125000,
-    20000,
-    75000,
-    150000,
-    100000
+    100,
+    1750,
+    2500,
+    500,
+    2000,
+    1250,
+    200,
+    750,
+    1500,
+    1000
   ]; // sectors on the wheel
   int randomSectorIndex = -1; // any index on sectors
   List<double> sectorRadians = []; // sector degrees/radians
@@ -34,7 +34,7 @@ class _SpiningWheel extends State<SpiningWheel>
 
   // Other data
   bool spinning = false; // whether currently spinning or not
-  double earnedValue = 0; // currently earned value
+  int earnedValue = 0; // currently earned value
   double totalEarnings = 0; // all earnings in total
   int spins = 0; // number of times of spinning so far
   int chances = 0; // number of chances the user has to spin
@@ -87,7 +87,8 @@ class _SpiningWheel extends State<SpiningWheel>
           spinning = false;
         });
         // Show pop-up with the earned value after 4 seconds
-        earnedValue = sectors[sectors.length - (randomSectorIndex + 1)];
+        earnedValue =
+            (sectors[sectors.length - (randomSectorIndex + 1)]).toInt();
         _showWinDialog();
       }
     });
@@ -279,10 +280,16 @@ class _SpiningWheel extends State<SpiningWheel>
       builder: (context) {
         return AlertDialog(
           title: const Text("Congratulations!"),
-          content: Text("You Won: ${(earnedValue / 100)} Point"),
+          content: Text("You Won: ${(earnedValue)} Point"),
           actions: [
             TextButton(
-              onPressed: () {
+              onPressed: () async {
+                if (await LocalData.containsKey('point')) {
+                  final poin = await LocalData.getData('point');
+                  final totalPoin = earnedValue + int.parse(poin);
+                  LocalData.saveData('point', totalPoin.toString());
+                  LocalData.saveData('max_point', totalPoin.toString());
+                }
                 Navigator.of(context).pop(); // Close the pop-up
               },
               child: const Text("OK"),
@@ -299,8 +306,7 @@ class _SpiningWheel extends State<SpiningWheel>
     try {
       final username =
           await LocalData.getData('user'); // Replace with actual user ID
-      double points =
-          earnedValue / 100; // Calculate points to send to the server
+      int points = earnedValue; // Calculate points to send to the server
       // Define the URL for the PHP script
       final String url = '${API.BASE_URL}'; // Replace with your actual URL
 
@@ -309,7 +315,7 @@ class _SpiningWheel extends State<SpiningWheel>
           '/earn_point.php',
           {
             'username': username,
-            'points': points.toStringAsFixed(0),
+            'points': points,
           },
           {'Content-Type': 'application/json'},
           true,

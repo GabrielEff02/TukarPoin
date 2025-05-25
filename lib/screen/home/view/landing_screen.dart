@@ -1,23 +1,17 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 import 'dart:typed_data';
+import 'package:http/http.dart' as http;
 
 import 'package:barcode/barcode.dart';
-import 'package:e_commerce/api/api.dart';
-import 'package:e_commerce/api/notification_api.dart';
 import 'package:e_commerce/constant/text_constant.dart';
 import 'package:e_commerce/screen/auth/splash_screen.dart';
 import 'package:e_commerce/screen/gabriel/notifications/item_screen.dart';
-import 'package:e_commerce/screen/gabriel/notifications/notification_screen.dart';
 import 'package:e_commerce/screen/gabriel/request_item/request_item_screen/request_item_screen.dart';
-import 'package:e_commerce/utils/local_data.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import '../../../NavBar.dart';
 
 import '../../../controller/landing_controller.dart';
 import '../../../screen/gabriel/checkouts/main_checkouts.dart';
@@ -30,42 +24,18 @@ class LandingScreen extends StatefulWidget {
   _LandingScreenState createState() => _LandingScreenState();
 }
 
-class _LandingScreenState extends State<LandingScreen>
-    with TickerProviderStateMixin {
+class _LandingScreenState extends State<LandingScreen> {
   final LandingScreenController controller = Get.put(LandingScreenController());
 
-  static List<dynamic> productData = [];
-
+  int vipTarget = 1500;
   Map<String, dynamic> categoryData = {};
-  late AnimationController _controller;
-  late Animation<double> _swingAnimation;
-
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 200),
-    );
-
-    _swingAnimation = Tween<double>(begin: -0.3, end: 0.3).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: Curves.ease,
-      ),
-    );
-
-    if (SplashScreen.notificationData['count'] != null &&
-        SplashScreen.notificationData['count'] > 0) {
-      _controller.repeat(reverse: true);
-    }
-
     getCategoryData();
-    getProductData();
   }
 
   @override
   void dispose() {
-    _controller.dispose();
     super.dispose();
   }
 
@@ -81,88 +51,9 @@ class _LandingScreenState extends State<LandingScreen>
     });
   }
 
-  Future<void> getProductData() async {
-    final fetchData = await CheckoutsData.getInitData("all");
-
-    fetchData['productData'].shuffle(Random());
-    setState(() {
-      productData = fetchData['productData'].take(10).toList();
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10.0),
-          child: Center(
-            child: Text(
-              "Simply Yours",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
-            ),
-          ),
-        ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              Get.to(NotificationScreen());
-            },
-            icon: SplashScreen.notificationData['count'] != null &&
-                    SplashScreen.notificationData['count'] > 0
-                ? Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      AnimatedBuilder(
-                        animation: _controller,
-                        builder: (context, child) {
-                          return Transform.rotate(
-                            angle: _swingAnimation.value, // Swing effect
-                            child: child,
-                          );
-                        },
-                        child: Icon(
-                          Icons.notifications,
-                          color: const Color(0xFF0095FF),
-                          size: 35.0,
-                        ),
-                      ),
-                      Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          padding: EdgeInsets.all(4.0),
-                          decoration: BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          constraints: BoxConstraints(
-                            minWidth: 20.0,
-                            minHeight: 20.0,
-                          ),
-                          child: Center(
-                            child: Text(
-                              SplashScreen.notificationData['count'].toString(),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12.0,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  )
-                : Icon(
-                    Icons.notifications,
-                    color: const Color.fromARGB(255, 78, 175, 245),
-                    size: 35.0,
-                  ), // Jika tidak ada notifikasi, ikon biasa
-          )
-        ],
-      ),
-      // drawer: NavBar(),
       body: Stack(
         children: <Widget>[
           SingleChildScrollView(
@@ -205,13 +96,12 @@ class _LandingScreenState extends State<LandingScreen>
                             ),
                             Expanded(
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 15, vertical: 10),
+                                padding: EdgeInsets.fromLTRB(15, 0, 15, 10),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     FutureBuilder(
-                                      future: LocalData.getData('user'),
+                                      future: LocalData.getData('full_name'),
                                       builder: (context, snapshot) {
                                         return Text(
                                           snapshot.data.toString(),
@@ -274,7 +164,7 @@ class _LandingScreenState extends State<LandingScreen>
                             FutureBuilder(
                               future: Future.wait([
                                 LocalData.getData('point'),
-                                LocalData.getData('balance'),
+                                LocalData.getData('max_point'),
                               ]),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
@@ -297,6 +187,7 @@ class _LandingScreenState extends State<LandingScreen>
                             ),
                           ],
                         ),
+                        SizedBox(height: 20.v),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -319,12 +210,11 @@ class _LandingScreenState extends State<LandingScreen>
                   ),
                   SizedBox(height: 20.v),
                   CarouselWidget(),
-                  categoryData.isNotEmpty
-                      ? categoryColumn(categoryData)
-                      : Container(),
-                  Column(
-                    children: productRow(productData),
-                  ),
+                  SizedBox(height: 20.v),
+                  // categoryData.isNotEmpty
+                  //     ? categoryColumn(categoryData)
+                  //     : Container(),
+
                   SizedBox(height: 80.v)
                 ],
               ),
@@ -333,6 +223,25 @@ class _LandingScreenState extends State<LandingScreen>
         ],
       ),
     );
+  }
+
+  Future<List<Map<String, dynamic>>> getCompan() async {
+    try {
+      final response =
+          await http.get(Uri.parse('${API.BASE_URL}/get_compan.php'));
+
+      if (response.statusCode == 200) {
+        // Mengonversi JSON response menjadi List<Map<String, dynamic>>
+        List<dynamic> jsonData = json.decode(response.body);
+        return jsonData.map((outlet) {
+          return {'compan_code': outlet['compan_code'], 'name': outlet['name']};
+        }).toList();
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      throw Exception('Failed to load data: $e');
+    }
   }
 
   Widget categoryColumn(Map<String, dynamic> categoryData) {
@@ -392,70 +301,154 @@ class _LandingScreenState extends State<LandingScreen>
             ],
           );
     return Container(
-      decoration: decoration,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: EdgeInsets.all(8.adaptSize),
       child: point
-          ? Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+          ? Banner(
+              message: (int.parse(value![1]) < vipTarget) ? 'Basic' : 'VIP',
+              textDirection: TextDirection.ltr,
+              location: BannerLocation.topStart,
+              color: (int.parse(value[1]) < vipTarget)
+                  ? Colors.blue
+                  : const Color.fromARGB(255, 255, 166, 0),
+              child: Container(
+                decoration: decoration,
+                margin: EdgeInsets.symmetric(horizontal: 10.h, vertical: 5.v),
+                child: Row(
+                  mainAxisAlignment: (int.parse(value[1]) < vipTarget)
+                      ? MainAxisAlignment.spaceBetween
+                      : MainAxisAlignment.spaceEvenly,
                   children: [
-                    Text(
-                      "Current Points",
-                      style: GoogleFonts.poppins(
-                        color: Colors.black,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    Column(
+                      children: [
+                        Text(
+                          "Points",
+                          style: GoogleFonts.poppins(
+                            color: Colors.black,
+                            fontSize: (int.parse(value[1]) < vipTarget)
+                                ? 12.adaptSize
+                                : 14.adaptSize,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          value != null &&
+                                  value.isNotEmpty &&
+                                  value[0].isNotEmpty
+                              ? value[0]
+                              : '0',
+                          style: GoogleFonts.poppins(
+                            color: Colors.black,
+                            fontSize: (int.parse(value[1]) < vipTarget)
+                                ? 24.adaptSize
+                                : 28.adaptSize,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        if (int.parse(value[1]) < vipTarget)
+                          Column(
+                            children: [
+                              SizedBox(
+                                width: 100.h,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      'Basic',
+                                      textAlign: TextAlign.left,
+                                      style: TextStyle(fontSize: 10.adaptSize),
+                                    ),
+                                    Text(
+                                      'VIP',
+                                      textAlign: TextAlign.right,
+                                      style: TextStyle(fontSize: 10.adaptSize),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(height: 5.h), // Tambahkan sedikit spasi
+                              SizedBox(
+                                width: 100.h,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(5),
+                                  child: LinearProgressIndicator(
+                                    value: (value != null && value.isNotEmpty)
+                                        ? (double.tryParse(value[1]) ?? 0) /
+                                            vipTarget
+                                        : 0,
+                                    backgroundColor: Colors.grey[300],
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                        Colors.blue),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ), // Jika sudah VIP, tidak ditampilkan
+                      ],
                     ),
-                    Text(
-                      value![0].isEmpty ? '0' : value[0],
-                      style: GoogleFonts.poppins(
-                        color: Colors.black,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                    if (int.parse(value[1]) < vipTarget)
+                      Container(width: 2, height: 75, color: Colors.grey),
+                    if (int.parse(value[1]) < vipTarget)
+                      Column(
+                        mainAxisSize: MainAxisSize.min, // Tambahkan ini
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Column(children: [
+                            Text(
+                              "Road To VIP",
+                              style: GoogleFonts.poppins(
+                                  color: Colors.black,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold),
+                            ),
+                            RichText(
+                              textAlign: TextAlign.center,
+                              text: TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: "${vipTarget - int.parse(value[1])}",
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.green,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: ' Point To Go',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.black,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                          ])
+                        ],
                       ),
-                    ),
                   ],
                 ),
-                Container(width: 2, height: 50, color: Colors.grey),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      "Gatzu Balance",
-                      style: GoogleFonts.poppins(
-                        color: Colors.black,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    Text(
-                      value[1].isEmpty ? '0' : value[1],
-                      style: GoogleFonts.poppins(
-                        color: Colors.black,
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+              ),
             )
-          : Row(
-              children: [
-                Icon(icon, color: Colors.black87),
-                SizedBox(width: 15),
-                Text(
-                  title!,
-                  style: TextConstant.medium.copyWith(
-                    color: Colors.black87,
-                    fontSize: 15,
+          : Container(
+              decoration: decoration,
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              margin: const EdgeInsets.only(bottom: 10),
+              child: Row(
+                children: [
+                  Icon(icon, color: Colors.black87),
+                  SizedBox(width: 15),
+                  Text(
+                    title!,
+                    style: TextConstant.medium.copyWith(
+                      color: Colors.black87,
+                      fontSize: 15,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
     );
   }
@@ -465,7 +458,7 @@ class _LandingScreenState extends State<LandingScreen>
       context: context,
       builder: (BuildContext context) {
         return FutureBuilder(
-          future: LocalData.getData('phone'),
+          future: LocalData.getData('kodec'),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -594,7 +587,7 @@ class _LandingScreenState extends State<LandingScreen>
           ),
           SizedBox(height: 4), // Space between name and price
           Text(
-            'Price: \$${product['price']}', // Product price
+            'Point: ${product['price']}', // Product price
             style: TextStyle(
               fontSize: 16, // Font size for price
               color: Colors.green, // Green color for price
@@ -654,6 +647,17 @@ class _LandingScreenState extends State<LandingScreen>
   }
 
   Widget categoryImage(String base64Image, String category) {
+    String name = '';
+    if (category.split(' ').length > 2) {
+      final categorySplited = category.split(' ');
+      for (String categoryName in categorySplited) {
+        if (categoryName.contains(RegExp(r'[a-zA-Z]')))
+          name += categoryName.substring(0, 1);
+      }
+    } else {
+      name = category.split(' ').first;
+    }
+    name = name.toUpperCase();
     return InkWell(
       onTap: () {
         (category != 'All')
@@ -687,8 +691,7 @@ class _LandingScreenState extends State<LandingScreen>
                   ),
                 ),
           Container(
-              margin: const EdgeInsets.only(bottom: 20),
-              child: Text(category.split(' ').first))
+              margin: const EdgeInsets.only(bottom: 20), child: Text(name))
         ],
       ),
     );

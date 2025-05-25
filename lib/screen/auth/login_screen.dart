@@ -46,17 +46,16 @@ class _LoginScreenState extends State<LoginScreen> {
               logincontroller.edtPhone.text = await LocalData.getData('phone');
               logincontroller.edtPass.text =
                   await LocalData.getData('password');
+              // clearCart();
               logincontroller.validation(
                 context: context,
                 callback: (result, error) async {
                   if (result != null && result['error'] != true) {
                     if (result['data'][0]['register_confirmation'] == '0') {
                       Get.to(() => VerifyPhoneScreen());
-                    } else if (await LocalData.containsKey('detailKTP')) {
-                      print(await LocalData.getData('detailKTP'));
-                      Get.offAll(SplashScreen());
                     } else {
-                      Get.offAll(KtpOCR());
+                      // Get.offAll(KtpOCR());
+                      Get.offAll(SplashScreen());
                     }
                   } else {
                     DialogConstant.alertError(error.toString());
@@ -99,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   Center(
                       child: Image.asset(ImageConstant.cart_logo,
                           height: size.height * 0.20)),
-                  SizedBox(height: 45),
+                  SizedBox(height: 35),
                   Text(
                     'Login',
                     style: TextConstant.regular.copyWith(
@@ -120,8 +119,12 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: TextField(
                               maxLength: 25,
                               controller: logincontroller.edtPhone,
+                              keyboardType: TextInputType.phone,
                               inputFormatters: [
-                                LengthLimitingTextInputFormatter(20),
+                                LengthLimitingTextInputFormatter(13),
+                                FilteringTextInputFormatter.deny(
+                                    RegExp('[\\-|\\,|\\.|\\#|\\*]')),
+                                FilteringTextInputFormatter.digitsOnly
                               ],
                               decoration: DecorationConstant.inputDecor()
                                   .copyWith(
@@ -206,11 +209,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                           ['register_confirmation'] ==
                                       '0') {
                                     Get.to(() => VerifyPhoneScreen());
-                                  } else if (await LocalData.containsKey(
-                                      'detailKTP')) {
-                                    Get.offAll(SplashScreen());
                                   } else {
-                                    Get.offAll(KtpOCR());
+                                    Get.offAll(SplashScreen());
                                   }
                                 } else {
                                   DialogConstant.alertError(error);

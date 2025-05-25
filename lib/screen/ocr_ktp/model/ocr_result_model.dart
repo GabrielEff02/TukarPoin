@@ -115,9 +115,9 @@ final List<String> masterAgama = [
   'Konghucu',
   'Islam'
 ];
-final List<String> masterJenisKelamin = ['Laki-laki', 'Perempuan'];
+final List<String> masterJenisKelamin = ['laki-laki', 'perempuan'];
 final List<String> masterKewarganegaraan = ['WNI', 'WNA'];
-final List<String> masterGolonganDarah = ['A', 'B', 'AB', 'O'];
+final List<String> masterGolonganDarah = ['-', 'A', 'B', 'AB', 'O'];
 final List<String> masterStatusPerkawinan = [
   'Belum Kawin',
   'Kawin',

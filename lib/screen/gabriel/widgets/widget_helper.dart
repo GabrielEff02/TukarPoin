@@ -69,7 +69,8 @@ class WidgetHelper {
   static PreferredSizeWidget appbarWidget(Function function, Widget title,
       {List<Widget>? actions}) {
     return AppBar(
-        backgroundColor: appTheme.whiteA700,
+        backgroundColor: Colors.white,
+        elevation: 0,
         leading: IconButton(
           onPressed: () {
             function();

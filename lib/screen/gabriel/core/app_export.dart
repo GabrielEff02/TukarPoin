@@ -8,3 +8,5 @@ export '../widgets/custom_image_view.dart';
 export '../widgets/widget_helper.dart';
 export 'package:flutter/material.dart';
 export '../data/general_data.dart';
+export 'package:e_commerce/api/api.dart';
+export 'package:e_commerce/utils/local_data.dart';

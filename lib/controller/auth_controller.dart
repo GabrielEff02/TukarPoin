@@ -54,7 +54,9 @@ class AuthController extends GetxController {
     header['Content-Type'] = 'application/json';
     post['phone'] = edtPhone.text;
     post['password'] = edtPass.text;
-    post['fcmToken'] = NotificationApi.fCMToken;
+    post['fcmToken'] = NotificationApi.fCMToken == ''
+        ? 'dawbhdbawjbdawjbdhwbawjbawjbdja'
+        : NotificationApi.fCMToken;
 
     bool isCompleted =
         false; // Flag untuk melacak apakah respons sudah diterima
@@ -71,7 +73,6 @@ class AuthController extends GetxController {
 
         if (result != null) {
           Future.delayed(Duration(seconds: 3), () {
-            print(result);
             if (result['error'] == true) {
               Get.back();
 
@@ -81,8 +82,11 @@ class AuthController extends GetxController {
             List dataUser = result['data'];
             if (dataUser.length > 1) {
               LocalData.saveData('detailKTP', jsonEncode(dataUser[1]));
+              LocalData.saveData('full_name', dataUser[1]['nama']);
             }
             LocalData.saveData('user', dataUser[0]['username'] ?? "");
+            LocalData.saveData('kodec', dataUser[0]['kodec'] ?? "");
+            LocalData.saveData('max_point', dataUser[0]['max_point'] ?? "");
             LocalData.saveData('loginDate', DateTime.now().toString());
             LocalData.saveData('password', post['password'] ?? "");
             LocalData.saveData('email', dataUser[0]['email'] ?? "");
@@ -92,8 +96,8 @@ class AuthController extends GetxController {
             LocalData.saveData('chance', dataUser[0]['spin_chance'] ?? "");
             LocalData.saveData(
                 'profile_picture', dataUser[0]['profile_picture'] ?? "");
-            LocalData.saveData('full_name',
-                "${dataUser[0]['first_name']} ${dataUser[0]['last_name'] ?? ""}");
+
+            LocalData.removeData('compan_code');
 
             if (dataUser[0]['email'].contains('@')) {
               List<String> maskEmail = dataUser[0]['email'].split('@');
@@ -120,31 +124,27 @@ class AuthController extends GetxController {
 
   validationRegister(
       {BuildContext? context, void callback(result, exception)?}) {
-    if (edtNama.text == '') {
-      Get.back();
-
-      DialogConstant.alertError('Nama tidak boleh kosong!');
-    } else if (edtEmail.text == '') {
-      Get.back();
-
+    if (edtPhone.text.isEmpty) {
+      DialogConstant.alertError('Nomor Telephone tidak boleh kosong!');
+    } else if (edtEmail.text.isEmpty) {
       DialogConstant.alertError('Email tidak boleh kosong!');
-    } else if (edtUsername.text == '') {
-      Get.back();
-      DialogConstant.alertError('Username tidak boleh kosong!');
-    } else if (edtPass.text == '') {
-      Get.back();
+    } else if (edtPass.text.isEmpty) {
       DialogConstant.alertError('Password tidak boleh kosong!');
-    } else if (edtConfirmPass.text == '') {
-      Get.back();
+    } else if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$')
+        .hasMatch(edtPass.text)) {
+      DialogConstant.alertError(
+          'Password harus minimal 6 karakter dan mengandung huruf serta angka!');
+    } else if (edtConfirmPass.text.isEmpty) {
       DialogConstant.alertError('Konfirmasi Password tidak boleh kosong!');
     } else if (edtPass.text != edtConfirmPass.text) {
-      Get.back();
       DialogConstant.alertError('Password dan Konfirmasi Password tidak sama!');
     } else {
       postRegister(
           context: context,
           callback: (result, error) {
-            callback!(result, error);
+            if (callback != null) {
+              callback(result, error);
+            }
           });
     }
   }
@@ -154,9 +154,7 @@ class AuthController extends GetxController {
     var header = new Map<String, String>();
 
     header['Content-Type'] = 'application/json';
-    post['first_name'] = edtNama.text;
     post['email'] = edtEmail.text;
-    post['username'] = edtUsername.text;
     post['password'] = edtPass.text;
     post['phone'] = edtPhone.text;
 
@@ -239,8 +237,6 @@ class AuthController extends GetxController {
 
     API.basePost('/auth-sms.php', post, header, true, (result, error) {
       Get.back();
-      print(result);
-      print(error);
       if (error != null) {
         callback!(null, error);
       }
@@ -252,10 +248,8 @@ class AuthController extends GetxController {
 
   validationOtp({BuildContext? context, void callback(result, exception)?}) {
     if (otpCode.text == '') {
-      Get.back();
       DialogConstant.alertError('Kode OTP kosong!');
     } else if (changePass.text == '') {
-      Get.back();
       DialogConstant.alertError('Password baru tidak boleh kosong!');
     } else {
       postOtpCode(
@@ -277,7 +271,7 @@ class AuthController extends GetxController {
     }
     post['newpass'] = changePass.text;
     post['codex'] = otpCode.text;
-
+    print(post);
     DialogConstant.loading(context!, 'Verifying OTP..');
 
     API.basePost('/get-verify-sms.php', post, header, true, (result, error) {

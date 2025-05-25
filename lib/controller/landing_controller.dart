@@ -1,10 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:e_commerce/screen/gabriel/checkouts/main_checkouts.dart';
 import 'package:get/get.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import '../screen/gabriel/core/app_export.dart';
 import 'dart:async';
-import '../api/api.dart';
 
 class LandingScreenController extends GetxController {
   var categoryData = <String, dynamic>{}.obs;
@@ -109,23 +107,14 @@ class _CarouselWidgetState extends State<CarouselWidget> {
                       onPageChanged: (index) =>
                           controller.currentIndex.value = index,
                       itemBuilder: (context, index) {
-                        return InkWell(
-                          child: CachedNetworkImage(
+                        return CachedNetworkImage(
                             imageUrl:
                                 "${API.BASE_URL}/images/${carouselImages[index]}",
                             fit: BoxFit.fill,
-                            placeholder: (context, url) => Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          ),
-                          onTap: () {
-                            mainCheckouts(
-                                filterCategory:
-                                    (carouselImages[index].split('.').first)
-                                        .split('/')
-                                        .last);
-                          },
-                        );
+                            placeholder: (context, url) => Image.asset(
+                                "assets/images/image_not_found.png"),
+                            errorWidget: (context, url, error) => Image.asset(
+                                "assets/images/image_not_found.png"));
                       },
                     ),
                   ),

@@ -1,4 +1,3 @@
-import 'package:e_commerce/screen/auth/splash_screen.dart';
 import 'package:e_commerce/screen/gabriel/checkouts/splash_screen/checkouts_splash_screen.dart';
 import 'package:get/get.dart';
 

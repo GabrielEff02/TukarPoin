@@ -4,19 +4,20 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:get/get.dart';
 import 'screen/auth/login_screen.dart';
 import 'screen/gabriel/core/app_export.dart';
+import 'package:flutter/services.dart';
 
-final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
-final navigatorKey = GlobalKey<NavigatorState>();
-void getToken() async {
-  String? token = await _firebaseMessaging.getToken();
-  print("FCM Token: $token");
-}
+// final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+// final navigatorKey = GlobalKey<NavigatorState>();
+// void getToken() async {
+//   String? token = await _firebaseMessaging.getToken();
+//   print("FCM Token: $token");
+// }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  await Firebase.initializeApp();
-  await NotificationApi().initNotifications();
+  // await Firebase.initializeApp();
+  // await NotificationApi().initNotifications();
   runApp(MyApp());
 }
 
@@ -25,6 +26,9 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
     return Sizer(builder: (context, orientation, deviceType) {
       return GetMaterialApp(
           title: 'Foxie',

@@ -26,7 +26,7 @@ class AppRoutes {
       final items = ModalRoute.of(context)?.settings.arguments as List<dynamic>;
       return ShoppingCartScreen(items: items); // Pass items to CartPage
     },
-    showItemsScreen: (context) => const ShowItemsScreen(),
+    showItemsScreen: (context) => ShowItemsScreen(),
     checkoutsSplashScreen: (context) => const CheckoutsSplashScreen(),
     requestItemScreen: (context) => RequestedItemScreen(),
   };

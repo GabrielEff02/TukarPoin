@@ -1,119 +1,259 @@
+import 'dart:convert';
+
+import 'package:e_commerce/constant/dialog_constant.dart';
+import 'package:e_commerce/screen/gabriel/checkouts/show_items_screen/widgets/list1_item_widget.dart';
 import 'package:e_commerce/screen/home/landing_home.dart';
-import 'package:e_commerce/screen/home/view/landing_screen.dart';
-import 'package:e_commerce/utils/local_data.dart';
-import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:get/get.dart';
 import '../../core/app_export.dart';
-import 'widgets/list1_item_widget.dart';
-import '../splash_screen/checkouts_splash_screen.dart';
+import 'package:http/http.dart' as http;
 
 class ShowItemsScreen extends StatefulWidget {
-  const ShowItemsScreen({Key? key}) : super(key: key);
+  static int countWidget = 0;
 
   @override
   _ShowItemsScreenState createState() => _ShowItemsScreenState();
 }
 
 class _ShowItemsScreenState extends State<ShowItemsScreen> {
-  String name = '';
-  bool _isAscending = true;
+  List<dynamic> displayedItems = [];
   List<dynamic> selectedItems = [];
+  List<Map<String, dynamic>> companyCode = [];
+  late var productData;
   int totalPrice = 0;
+  bool isLoading = false;
+  String name = '';
+  int point = 0;
+  String selectedCompanyCode = 'semua';
+  bool checkCompan = false;
+  bool checkProduct = false;
+  String truncateText(String text, {int maxLength = 15}) {
+    return text.length > maxLength
+        ? "${text.substring(0, maxLength)}..."
+        : text;
+  }
+
+  Future<void> checkingCompan() async {
+    DialogConstant.loading(context, 'Loading...');
+
+    if (await LocalData.containsKey('compan_code')) {
+      final companyCode = await LocalData.getData('compan_code');
+      setState(() {
+        checkCompan = true;
+        selectedCompanyCode = companyCode;
+      });
+      await _sortInitialData();
+    }
+    Get.back();
+  }
+
   @override
   void initState() {
     super.initState();
-    getFullName();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadInitialData();
+    });
+  }
+
+  Future<void> loadInitialData() async {
+    DialogConstant.loading(context, 'Loading...');
+    await getCompan();
+    await getFullName();
+    await checkingCompan();
+    Get.back();
+  }
+
+  Future<void> getCompan() async {
+    try {
+      final response =
+          await http.get(Uri.parse('${API.BASE_URL}/get_compan.php'));
+
+      if (response.statusCode == 200) {
+        // Mengonversi JSON response menjadi List<Map<String, dynamic>>
+        List<dynamic> jsonData = json.decode(response.body);
+        setState(() {
+          companyCode = [
+            {'compan_code': 'semua', 'name': 'Semua'}
+          ];
+          companyCode.addAll(jsonData.map((outlet) {
+            return {
+              'compan_code': outlet['compan_code'],
+              'name': outlet['name']
+            };
+          }).toList());
+        });
+      } else {
+        throw Exception('Failed to load data');
+      }
+    } catch (e) {
+      throw Exception('Failed to load data: $e');
+    }
   }
 
   Future<void> getFullName() async {
     final names = await LocalData.getData("full_name");
+    final points = await LocalData.getData('point');
+
     setState(() {
       name = names;
+      point = int.parse(points);
     });
   }
 
-  void _sortData() {
-    CheckoutsSplashScreen.productData.sort((a, b) {
-      double priceA = double.parse(a["price"].toString());
-      double priceB = double.parse(b["price"].toString());
-      return _isAscending ? priceA.compareTo(priceB) : priceB.compareTo(priceA);
-    });
+  Future<void> _sortInitialData() async {
+    selectedItems = [];
+    if (await LocalData.containsKey('cart')) {
+      final datas = jsonDecode(await LocalData.getData('cart'));
+      final compan = await LocalData.getData('compan_code');
+      final listData = await CheckoutsData.getInitData(compan);
+
+      productData = listData['productData'];
+
+      if (datas.keys.contains(compan)) {
+        List<int> uniquePriorityOrder = [];
+        for (String data in datas[compan]) {
+          if (!uniquePriorityOrder.contains(int.parse(data))) {
+            uniquePriorityOrder.add(int.parse(data));
+          }
+        }
+        uniquePriorityOrder.sort();
+        setState(() {
+          checkProduct = true;
+          selectedItems = [];
+
+          productData.sort((a, b) {
+            int productIdA = a["product_id"] as int;
+            int productIdB = b["product_id"] as int;
+
+            int indexA = uniquePriorityOrder.indexOf(productIdA);
+            int indexB = uniquePriorityOrder.indexOf(productIdB);
+
+            if (indexA == -1) indexA = 9999;
+            if (indexB == -1) indexB = 9999;
+
+            return indexA.compareTo(indexB);
+          });
+
+          displayedItems = productData.toList();
+        });
+      } else {
+        setState(() {
+          checkProduct = false;
+          displayedItems = productData.toList();
+        });
+      }
+    }
   }
 
   void _onQuantityChanged(dynamic updatedData) {
     setState(() {
-      if (updatedData['quantity'] > 0) {
-        final existingIndex =
-            selectedItems.indexWhere((item) => item == updatedData);
-        if (existingIndex != -1) {
-          selectedItems[existingIndex] = updatedData;
-        } else {
-          selectedItems.add(updatedData);
-        }
-      } else {
-        selectedItems.removeWhere((item) => item == updatedData);
+      int index = displayedItems.indexWhere(
+          (item) => (item['product_id']) == updatedData['product_id']);
+      if (index != -1) {
+        displayedItems[index] = updatedData;
       }
+      if (!(updatedData['quantity'] is int))
+        updatedData['quantity'] = int.parse(updatedData['quantity']);
 
-      totalPrice = 0;
-      for (var item in selectedItems) {
-        totalPrice +=
-            (item['price'] as int) * (item['quantity_selected'] as int);
+      if (updatedData['quantity'] > 0) {
+        selectedItems.removeWhere(
+            (item) => item['product_id'] == updatedData['product_id']);
+        selectedItems.add(updatedData);
+      } else {
+        selectedItems.removeWhere(
+            (item) => item['product_id'] == updatedData['product_id']);
       }
-      if (totalPrice > 0) {
-        selectedItems[0]['total price'] = totalPrice;
-      }
+      totalPrice = selectedItems.fold(
+          0,
+          (sum, item) =>
+              sum +
+              (int.tryParse(item['price'].toString()) ?? 0) *
+                  (int.tryParse(item['quantity_selected'].toString()) ?? 0));
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    NumberFormat currencyFormatter = NumberFormat.currency(
-      locale: 'id_ID',
-      symbol: '',
-      decimalDigits: 0,
-    );
-
+    NumberFormat currencyFormatter =
+        NumberFormat.currency(locale: 'id_ID', symbol: '', decimalDigits: 0);
+    bool color = true;
     return Scaffold(
       backgroundColor: appTheme.whiteA700,
       appBar: WidgetHelper.appbarWidget(
-        () {
-          Get.offAll(LandingHome());
-        },
-        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text("Hello $name!!!", style: CustomTextStyle.titleSmallBlack900),
-          Text(
-            'Points: ${currencyFormatter.format(CheckoutsSplashScreen.profileData['point'])}',
-            style: CustomTextStyle.titleSmallBlack900,
-          )
-        ]),
-        actions: [
-          IconButton(
-            icon: Icon(
-              _isAscending ? Icons.arrow_upward : Icons.arrow_downward,
-              color: appTheme.blueGray800,
+          () => Get.offAll(LandingHome()),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text("Hello $name!!!", style: CustomTextStyle.titleSmallBlack900),
+            Text(
+              'Points: ${currencyFormatter.format(point)}',
+              style: CustomTextStyle.titleSmallBlack900,
+            )
+          ]),
+          actions: [
+            DropdownButton<String>(
+              hint: Text("Pilih Perusahaan"),
+              value: selectedCompanyCode,
+              items: companyCode.map((company) {
+                return DropdownMenuItem<String>(
+                  value: company["compan_code"], // Menyimpan company_code
+                  child: Text(
+                    truncateText(company["name"]!),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                    softWrap: false,
+                  ),
+                );
+              }).toList(),
+              onChanged: (String? newValue) {
+                setState(() {
+                  selectedCompanyCode = newValue!;
+                });
+                LocalData.saveData('compan_code', selectedCompanyCode);
+                checkingCompan();
+              },
+            )
+          ]),
+      body: checkCompan
+          ? checkProduct
+              ? Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: displayedItems.length + (isLoading ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (index == displayedItems.length) {
+                            return Padding(
+                              padding: EdgeInsets.all(10),
+                              child: Center(child: CircularProgressIndicator()),
+                            );
+                          }
+                          var widgetData = displayedItems[index];
+
+                          return List1ItemWidget(
+                            key: ValueKey(widgetData['product_id']),
+                            data: widgetData,
+                            color: color = !color,
+                            onQuantityChanged: _onQuantityChanged,
+                          );
+                        },
+                      ),
+                    ),
+                    if (totalPrice > 0)
+                      Container(
+                          color: Colors.transparent, height: 75.adaptSize),
+                  ],
+                )
+              : Center(
+                  child: Text('Tidak ada produk yang dipilih',
+                      style: TextStyle(
+                          color: Colors.red, fontWeight: FontWeight.w900)),
+                )
+          : Center(
+              child: Text('Harap memilih cabang terlebih dahulu',
+                  style: TextStyle(
+                      color: Colors.red, fontWeight: FontWeight.w900)),
             ),
-            onPressed: () {
-              setState(() {
-                _isAscending = !_isAscending; // Toggle sorting
-                _sortData(); // Panggil fungsi sorting
-              });
-            },
-          ),
-        ],
-      ),
-      body: Scrollbar(
-        interactive: true,
-        thickness: 7.v,
-        child: SingleChildScrollView(
-          scrollDirection: Axis.vertical,
-          child: Container(
-            padding: EdgeInsets.only(bottom: totalPrice > 0 ? 75.adaptSize : 0),
-            child: salesReport(context),
-          ),
-        ),
-      ),
       bottomSheet: AnimatedContainer(
-        duration: const Duration(milliseconds: 500),
+        duration: Duration(milliseconds: 500),
         height: totalPrice > 0 ? 75.adaptSize : 0,
         child: totalPrice > 0
             ? Padding(
@@ -127,39 +267,35 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: "Total Price: ",
-                              style: CustomTextStyle.bodyMediumBlueGray600,
-                            ),
+                                text: "Total Price: ",
+                                style: CustomTextStyle.bodyMediumBlueGray600),
                             TextSpan(
                               text: currencyFormatter.format(totalPrice),
-                              style:
-                                  CheckoutsSplashScreen.profileData['point'] <
-                                          totalPrice
-                                      ? CustomTextStyle.bodyLargeRed700
-                                      : CustomTextStyle.bodyLargeGreen700,
+                              style: point < totalPrice
+                                  ? CustomTextStyle.bodyLargeRed700
+                                  : CustomTextStyle.bodyLargeGreen700,
                             ),
                           ],
                         ),
                       ),
                     ),
-                    if (CheckoutsSplashScreen.profileData['point'] >=
-                        totalPrice)
-                      Padding(
-                        padding: EdgeInsets.only(right: 15.h),
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.shopping_cart,
-                            color: appTheme.black900,
-                          ),
-                          onPressed: () {
-                            Navigator.pushNamed(
-                              context,
-                              AppRoutes.shoppingCartScreen,
-                              arguments: selectedItems,
-                            );
-                          },
-                        ),
-                      ),
+                    (point >= totalPrice)
+                        ? Padding(
+                            padding: EdgeInsets.only(right: 15.h),
+                            child: IconButton(
+                              icon: Icon(Icons.shopping_cart,
+                                  color: appTheme.black900),
+                              onPressed: () {
+                                Navigator.pushNamed(
+                                  context,
+                                  AppRoutes.shoppingCartScreen,
+                                  arguments: selectedItems,
+                                );
+                              },
+                            ),
+                          )
+                        : Text('Point tidak mencukupi',
+                            style: CustomTextStyle.bodyLargeRed700),
                   ],
                 ),
               )
@@ -167,46 +303,4 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
       ),
     );
   }
-
-  Widget salesReport(BuildContext context) {
-    bool color = true;
-    return Column(
-      children: [
-        for (var widget in CheckoutsSplashScreen.productData)
-          List1ItemWidget(
-              key: ValueKey(widget['product_id']),
-              data: widget,
-              color: color = !color,
-              onQuantityChanged: _onQuantityChanged),
-      ],
-    );
-  }
-}
-
-void showExitConfirmationDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    barrierDismissible: false,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: const Text('Confirm Exit'),
-        content: const Text('Are you sure you want to exit the app?'),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Get.to(LandingScreen());
-            },
-            child: const Text('Exit'),
-          ),
-        ],
-      );
-    },
-  );
 }

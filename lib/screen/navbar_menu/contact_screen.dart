@@ -11,7 +11,7 @@ class ContactScreen extends StatefulWidget {
 
 class _ContactScreenState extends State<ContactScreen> {
   String url() {
-    var phone = "+6287851441879";
+    var phone = "+6282145473050";
     if (Platform.isIOS) {
       return "https://api.whatsapp.com/send?phone=$phone=${Uri.parse("Hello")}";
     } else {
@@ -60,8 +60,8 @@ class _ContactScreenState extends State<ContactScreen> {
             buildContactTile(
               icon: Icons.phone,
               title: 'Layanan Pelanggan',
-              subtitle: '0821-3173-6377',
-              onTap: () => launchPhoneCall('082131736377'),
+              subtitle: '0361-235733',
+              onTap: () => launchPhoneCall('0361235733'),
             ),
             const SizedBox(height: 20),
             buildContactTile(
@@ -73,15 +73,16 @@ class _ContactScreenState extends State<ContactScreen> {
             buildContactTile(
               icon: Icons.email,
               title: 'Email',
-              subtitle: 'montserat13@gmail.com',
-              onTap: () => launchEmail('montserat13@gmail.com'),
+              subtitle: 'cs@tiaradewata.co.id',
+              onTap: () => launchEmail('cs@tiaradewata.co.id'),
             ),
             const SizedBox(height: 20),
             buildContactTile(
               icon: Icons.web,
               title: 'Website',
-              subtitle: 'Yahoo.com',
-              onTap: () => launchWebView(Uri.parse("https://google.com/")),
+              subtitle: 'tiaradewata.co.id',
+              onTap: () =>
+                  launchWebView(Uri.parse("https://tiaradewata.co.id")),
             ),
           ],
         ),

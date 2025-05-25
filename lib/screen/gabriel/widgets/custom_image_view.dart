@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:e_commerce/api/api.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../core/app_export.dart';
@@ -116,14 +115,12 @@ class CustomImageView extends StatelessWidget {
             imageUrl: imagePath!,
             color: color,
             placeholder: (context, url) => Image.asset(placeHolder,
-                height: height, width: width, fit: fit ?? BoxFit.cover),
-            errorWidget: (context, url, error) => Image.asset(
-              placeHolder,
-              height: height,
-              width: width,
-              fit: fit ?? BoxFit.cover,
-              color: color,
-            ),
+                height: height, width: width, fit: fit ?? BoxFit.fill),
+            errorWidget: (context, url, error) => Image.asset(placeHolder,
+                height: height,
+                width: width,
+                fit: fit ?? BoxFit.fill,
+                color: color),
           );
         case ImageType.file:
           return Image.file(File(imagePath!),

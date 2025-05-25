@@ -1,4 +1,3 @@
-import 'package:e_commerce/api/api.dart';
 import 'package:e_commerce/api/notification_api.dart';
 import 'package:e_commerce/screen/auth/splash_screen.dart';
 import 'package:e_commerce/screen/gabriel/core/app_export.dart';

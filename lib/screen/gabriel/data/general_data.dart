@@ -6,11 +6,15 @@ import '../../../utils/local_data.dart';
 String db = API.BASE_URL;
 
 class CheckoutsData {
-  static Future<Map<String, dynamic>> getInitData(String category) async {
+  static Future<Map<String, dynamic>> getInitData(String compan_code) async {
     String username = await LocalData.getData('user');
+    String companCode = await LocalData.getData('compan_code');
+    if (companCode.isNotEmpty) {
+      compan_code = companCode;
+    }
     try {
       final response = await http.get(Uri.parse(
-          "$db/checkouts_data.php?username=$username&category=$category"));
+          "$db/checkouts_data.php?username=$username&compan_code=$compan_code"));
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final transactions = data['initData'] as Map<String, dynamic>;

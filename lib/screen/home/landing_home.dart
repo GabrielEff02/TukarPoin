@@ -1,4 +1,7 @@
+import 'package:e_commerce/NavBar.dart';
 import 'package:e_commerce/api/notification_api.dart';
+import 'package:e_commerce/screen/auth/splash_screen.dart';
+import 'package:e_commerce/screen/gabriel/checkouts/main_checkouts.dart';
 import 'package:e_commerce/screen/gabriel/notifications/notification_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -15,9 +18,11 @@ class LandingHome extends StatefulWidget {
   State<LandingHome> createState() => _LandingHomeState();
 }
 
-class _LandingHomeState extends State<LandingHome> {
+class _LandingHomeState extends State<LandingHome>
+    with TickerProviderStateMixin {
   PageController controllers = PageController();
-
+  late AnimationController _controller;
+  late Animation<double> _swingAnimation;
   // Button state
   bool buttonPressed1 = true;
   bool buttonPressed2 = false;
@@ -32,6 +37,22 @@ class _LandingHomeState extends State<LandingHome> {
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 200),
+    );
+
+    _swingAnimation = Tween<double>(begin: -0.3, end: 0.3).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.ease,
+      ),
+    );
+
+    if (SplashScreen.notificationData['count'] != null &&
+        SplashScreen.notificationData['count'] > 0) {
+      _controller.repeat(reverse: true);
+    }
     if (NotificationApi.notificationId != 0) {
       Get.to(NotificationScreen());
     }
@@ -54,12 +75,94 @@ class _LandingHomeState extends State<LandingHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: buttonPressed1
+          ? AppBar(
+              title: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                child: Center(
+                  child: Text(
+                    "Tiara Member",
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 26),
+                  ),
+                ),
+              ),
+              actions: [
+                IconButton(
+                  onPressed: () {
+                    mainCheckouts();
+                  },
+                  icon: Icon(
+                    Icons.shopping_cart,
+                    color: const Color.fromARGB(255, 245, 198, 78),
+                    size: 35.0,
+                  ), // Jika tidak ada notifikasi, ikon biasa
+                ),
+                IconButton(
+                  onPressed: () {
+                    Get.to(NotificationScreen());
+                  },
+                  icon: SplashScreen.notificationData['count'] != null &&
+                          SplashScreen.notificationData['count'] > 0
+                      ? Stack(
+                          clipBehavior: Clip.none,
+                          children: [
+                            AnimatedBuilder(
+                              animation: _controller,
+                              builder: (context, child) {
+                                return Transform.rotate(
+                                  angle: _swingAnimation.value, // Swing effect
+                                  child: child,
+                                );
+                              },
+                              child: Icon(
+                                Icons.notifications,
+                                color: const Color(0xFF0095FF),
+                                size: 35.0,
+                              ),
+                            ),
+                            Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                padding: EdgeInsets.all(4.0),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  shape: BoxShape.circle,
+                                ),
+                                constraints: BoxConstraints(
+                                  minWidth: 20.0,
+                                  minHeight: 20.0,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    SplashScreen.notificationData['count']
+                                        .toString(),
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12.0,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        )
+                      : Icon(
+                          Icons.notifications,
+                          color: const Color.fromARGB(255, 78, 175, 245),
+                          size: 35.0,
+                        ), // Jika tidak ada notifikasi, ikon biasa
+                ),
+              ],
+            )
+          : null,
+      drawer: buttonPressed1 ? NavBar() : null,
       body: Stack(
         children: [
           // PageView
           PageView(
             controller: controllers,
-            physics: BouncingScrollPhysics(),
             children: const <Widget>[
               LandingScreen(),
               SpiningWheel(),
@@ -75,7 +178,7 @@ class _LandingHomeState extends State<LandingHome> {
           ),
           // Neumorphic buttons for navigation
           Positioned(
-            bottom: 10,
+            bottom: 20,
             left: 50,
             right: 50,
             child: Row(

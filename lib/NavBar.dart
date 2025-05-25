@@ -1,40 +1,31 @@
+import 'package:e_commerce/screen/auth/login_screen.dart';
+import 'package:e_commerce/screen/gabriel/core/app_export.dart';
+import 'package:e_commerce/screen/gabriel/request_item/request_history_screen/request_history_screen.dart';
+import 'package:e_commerce/screen/home/view/edit_profile_screen.dart';
+import 'package:e_commerce/screen/navbar_menu/about_us_screen.dart';
+import 'package:e_commerce/screen/navbar_menu/history_screen.dart';
+import 'package:e_commerce/screen/navbar_menu/others_screen.dart';
+import 'package:e_commerce/screen/navbar_menu/contact_screen.dart';
+import 'package:e_commerce/screen/navbar_menu/outlet_screen.dart';
 import 'package:e_commerce/screen/ocr_ktp/view/home.dart';
-import 'package:e_commerce/screen/gabriel/checkouts/shopping_cart_screen/shopping_cart_screen.dart';
-import 'package:e_commerce/screen/gabriel/checkouts/splash_screen/checkouts_splash_screen.dart';
-import 'package:e_commerce/screen/gabriel/request_item/request_item_screen/request_item_screen.dart';
-import 'package:flutter/material.dart';
+import 'package:e_commerce/screen/srg/security_screen.dart';
 import 'package:get/get.dart';
-import 'screen/gabriel/checkouts/main_checkouts.dart';
+
+import 'screen/navbar_menu/checkout_main_screen.dart';
 
 class NavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
       child: ListView(
-        // Remove padding
-        padding: EdgeInsets.zero,
         children: [
-          UserAccountsDrawerHeader(
-            accountName: Text('Foxie'),
-            accountEmail: Text('foxie123@gmail.com'),
-            currentAccountPicture: CircleAvatar(
-              child: ClipOval(
-                child: Image.network(
-                  'https://img.freepik.com/premium-photo/fox-wallpapers-hd-iphone-android_881308-133.jpg',
-                  fit: BoxFit.cover,
-                  width: 90,
-                  height: 90,
-                ),
-              ),
-            ),
-            decoration: BoxDecoration(
-              color: Colors.blue,
-              image: DecorationImage(
-                  fit: BoxFit.fill,
-                  image: NetworkImage(
-                      'https://t4.ftcdn.net/jpg/06/54/18/11/360_F_654181147_c5rztTDZh7aGSFF9w8A9LUJQw2kVCz4b.jpg')),
-            ),
-          ),
+          Container(
+              margin: EdgeInsets.fromLTRB(10.h, 30.v, 10.h, 10.v),
+              child: Image.asset(
+                'assets/images/logo.png',
+                width: 150.adaptSize,
+                height: 150.adaptSize,
+              )),
 
           // ListTile(
           //   leading: Icon(Icons.person),
@@ -63,24 +54,78 @@ class NavBar extends StatelessWidget {
           //     ),
           //   ),
           // ),
+          // ListTile(
+          //   leading: Icon(Icons.shop),
+          //   title: Text('Checkouts Cart'),
+          //   // onTap: () => Get.to(() => CheckoutsSplashScreen()),
+          //   onTap: () => mainCheckouts(),
+          // ),
+          Divider(),
           ListTile(
-            leading: Icon(Icons.shop),
-            title: Text('Checkouts Cart'),
-            // onTap: () => Get.to(() => CheckoutsSplashScreen()),
-            onTap: () => mainCheckouts(),
+            leading: Icon(Icons.book),
+            title: Text('Redeem your points'),
+            onTap: () => Get.to(() => CheckoutMainScreen()),
           ),
           ListTile(
             leading: Icon(Icons.request_page),
             title: Text('Request Item'),
-            onTap: () => Get.to(() => RequestedItemScreen()),
+            onTap: () => Get.to(() => RequestHistoryScreen()),
           ),
           ListTile(
-            leading: Icon(Icons.card_membership_outlined),
-            title: Text('KTP OCR'),
+            leading: Icon(Icons.history_edu),
+            title: Text('Riwayat Transaksi'),
+            onTap: () => Get.to(() => HistoryScreen()),
+          ),
+          Divider(),
+
+          ListTile(
+            leading: Icon(Icons.lock),
+            title: Text('Change Password'),
+            onTap: () => Get.to(() => SecurityScreen()),
+          ),
+
+          ListTile(
+            leading: Icon(Icons.person),
+            title: Text('Edit Profile'),
+            onTap: () => Get.to(() => EditProfileScreen()),
+          ),
+          ListTile(
+            leading: Icon(Icons.person_add),
+            title: Text('Complete your details'),
             onTap: () => Get.to(() => KtpOCR()),
           ),
 
           Divider(),
+          ListTile(
+            leading: Icon(Icons.house),
+            title: Text('Tiara Outlet Store'),
+            onTap: () => Get.to(() => OutletScreen()),
+          ),
+          ListTile(
+            leading: Icon(Icons.email),
+            title: Text('Contact US'),
+            onTap: () => Get.to(() => ContactScreen()),
+          ),
+          Divider(),
+          ListTile(
+            leading: Icon(Icons.more_horiz),
+            title: Text('Others'),
+            onTap: () => Get.to(() => OthersScreen()),
+          ),
+          ListTile(
+            leading: Icon(Icons.info),
+            title: Text('About US'),
+            onTap: () => Get.to(() => AboutUsScreen()),
+          ),
+          Divider(),
+          ListTile(
+            leading: Icon(Icons.exit_to_app_rounded),
+            title: Text('Log Out'),
+            onTap: () {
+              LocalData.removeAllPreference();
+              Get.offAll(const LoginScreen());
+            },
+          ),
         ],
       ),
     );

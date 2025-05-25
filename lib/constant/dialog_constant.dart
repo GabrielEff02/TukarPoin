@@ -13,61 +13,104 @@ class DialogConstant {
   }
 
   static void alertError(String message, {VoidCallback? function}) {
-    showDialog(
-        context: Get.context!,
-        barrierDismissible: true,
-        builder: (BuildContext context) {
-          return Dialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(5)),
+  showDialog(
+    context: Get.context!,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return Dialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        elevation: 16,
+        backgroundColor: Colors.white,
+        child: AnimatedScale(
+          scale: 1.1,
+          duration: Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
             child: Column(
               mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                SizedBox(height: 16),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+              children: [
+                // Add a subtle animation for the icon to make it more dynamic
+                AnimatedOpacity(
+                  opacity: 1.0,
+                  duration: Duration(milliseconds: 500),
+                  child: Icon(
+                    Icons.error_outline,
+                    color: Colors.redAccent,
+                    size: 60,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Oops!',
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                AnimatedOpacity(
+                  opacity: 1.0,
+                  duration: Duration(milliseconds: 500),
                   child: Text(
                     message,
-                    style: TextConstant.regular,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[800],
+                      height: 1.4,
+                    ),
                   ),
                 ),
-                SizedBox(height: 16),
-                Divider(
-                  height: 0,
-                ),
-                TextButton(
-                  child: Text(
-                    'OKE',
-                    style: TextConstant.medium.copyWith(color: Colors.blue),
-                  ),
-                  // elevation: 0,
-                  // disabledElevation: 0,
-                  // color: Colors.white,
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    print("message error : $message");
-                    if (message.contains("tidak dapat diproses")) {
-                      Navigator.pop(context);
-                      Navigator.pushNamedAndRemoveUntil(
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      elevation: 5,
+                    ),
+                    child: Text(
+                      'OKE',
+                      style: TextStyle(
+                        fontSize: 18,
+                        color: Colors.white,
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      if (message.contains("tidak dapat diproses")) {
+                        Navigator.pop(context);
+                        Navigator.pushNamedAndRemoveUntil(
                           context,
                           "/detail_pesanan_page",
-                          (Route<dynamic> route) => false);
-                    } else {
-                      if (function != null) {
-                        function();
+                          (Route<dynamic> route) => false,
+                        );
+                      } else {
+                        if (function != null) {
+                          function();
+                        }
                       }
-                    }
-                  },
-                ),
-                SizedBox(
-                  height: 4,
+                    },
+                  ),
                 ),
               ],
             ),
-          );
-        });
-  }
+          ),
+        ),
+      );
+    },
+  );
+}
+
 
   static loading(BuildContext context, String text) {
     return showDialog<void>(

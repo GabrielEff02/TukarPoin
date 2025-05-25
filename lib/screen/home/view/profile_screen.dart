@@ -1,19 +1,14 @@
-import 'dart:typed_data';
-
 import 'package:barcode/barcode.dart';
-import 'package:e_commerce/screen/home/view/address_screen.dart';
 import '../../../screen/gabriel/core/app_export.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../constant/text_constant.dart';
 import '../../../screen/auth/login_screen.dart';
-import '../../../screen/home/view/contact_screen.dart';
+import '../../navbar_menu/contact_screen.dart';
 import '../../../screen/home/view/edit_profile_screen.dart';
 import '../../../screen/srg/security_screen.dart';
-import '../../../utils/local_data.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -85,7 +80,7 @@ class ProfileScreen extends StatelessWidget {
                     // ),
                     const SizedBox(height: 5),
                     GestureDetector(
-                      onTap: () => Get.to(() => const SecurityScreen()),
+                      onTap: () => Get.to(() => SecurityScreen()),
                       child: itemMenu('Security', Icons.lock),
                     ),
                     const SizedBox(height: 5),

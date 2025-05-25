@@ -64,9 +64,10 @@ class ForgotPasswordScreen extends StatelessWidget {
                           maxLength: 25,
                           keyboardType: TextInputType.phone,
                           inputFormatters: [
-                            LengthLimitingTextInputFormatter(12),
+                            LengthLimitingTextInputFormatter(13),
                             FilteringTextInputFormatter.deny(
-                                RegExp('[\\-|\\,|\\.|\\#|\\*]'))
+                                RegExp('[\\-|\\,|\\.|\\#|\\*]')),
+                            FilteringTextInputFormatter.digitsOnly
                           ],
                           decoration: DecorationConstant.inputDecor().copyWith(
                               hintText: "Masukkan Nomor Telephone anda",
@@ -83,12 +84,13 @@ class ForgotPasswordScreen extends StatelessWidget {
                 text: 'Submit',
                 onClick: () {
                   LocalData.saveData('phone', logincontroller.edtPhone.text);
-                  authController.sendOtpSMS(
+                  logincontroller.sendOtpSMS(
                     context: context,
                     callback: (result, error) {
-                      print(result);
                       if (result != null && result['error'] != true) {
-                        Get.to(SecurityScreen());
+                        Get.to(SecurityScreen(
+                          forget: true,
+                        ));
                       } else {
                         LocalData.removeAllPreference();
                         DialogConstant.alertError(result['message']);

@@ -1,9 +1,6 @@
+import 'package:e_commerce/screen/auth/second_splash.dart';
 import 'package:e_commerce/screen/gabriel/core/app_export.dart';
 import 'package:get/get.dart';
-
-import '../../../../../utils/local_data.dart';
-import '../../../../../api/api.dart';
-import '../../../../../constant/dialog_constant.dart';
 
 class ShoppingCartController {
   Future<void> postTransactions(
@@ -15,11 +12,8 @@ class ShoppingCartController {
 
     header['Content-Type'] = 'application/json';
     String username = await LocalData.getData("user");
+    final companCode = await LocalData.getData('compan_code');
     postTransaction!['username'] = username;
-    postTransaction['address_id'] =
-        int.parse(await LocalData.getData("address"));
-    DialogConstant.loading(context!, 'Transaction on Process...');
-
     API.basePost('/update_transaction.php', postTransaction, header, true,
         (result, error) {
       for (dynamic transaction in postTransactionDetail!) {
@@ -29,6 +23,7 @@ class ShoppingCartController {
           'quantity': transaction['quantity_selected'],
           'total_price':
               transaction['price'] * transaction['quantity_selected'],
+          'compan_code': companCode
         };
         API.basePost('/update_transaction_detail.php', postDetail, header, true,
             (result, error) async {
@@ -37,15 +32,13 @@ class ShoppingCartController {
           } else {
             LocalData.saveData('point',
                 '${int.parse(await LocalData.getData('point')) - (transaction['price'] * transaction['quantity_selected'])}');
+            LocalData.removeData('cart');
           }
         });
       }
       Future.delayed(Duration(seconds: 4), () {
         Get.back();
-        Navigator.pushNamed(
-          context,
-          AppRoutes.checkoutsSplashScreen,
-        );
+        Get.to(SecondSplash());
         if (error != null) {
           callback!(null, error);
         }

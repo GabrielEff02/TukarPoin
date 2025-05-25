@@ -62,34 +62,36 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
 
       header['Content-Type'] = 'application/json';
       DialogConstant.loading(context, 'Loading...');
-      Future.delayed(
-          Duration(seconds: 2),
-          API.basePost('/request_item.php', data, header, true,
-              (result, error) {
-            Get.back();
-            if (error != null) {
-              DialogConstant.alertError('Request Item Failed');
-            }
-            if (result != null) {
-              Alert(
-                context: context,
-                type: AlertType.success,
-                title: "Success",
-                desc: "Requested Item Submitted Successfully!",
-                buttons: [
-                  DialogButton(
-                    child: Text(
-                      "OK",
-                      style: TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                    color: Color(0xFF42A5F5), // Blue accent for success
-                    radius: BorderRadius.circular(10.0),
+      Future.delayed(Duration(seconds: 2), () {
+        API.basePost('/request_item.php', data, header, true, (result, error) {
+          Get.back();
+          if (error != null) {
+            DialogConstant.alertError('Request Item Failed');
+          }
+          if (result != null) {
+            Alert(
+              context: context,
+              type: AlertType.success,
+              title: "Success",
+              desc: "Requested Item Submitted Successfully!",
+              buttons: [
+                DialogButton(
+                  child: Text(
+                    "OK",
+                    style: TextStyle(color: Colors.white, fontSize: 18),
                   ),
-                ],
-              ).show();
-            }
-          }));
+                  onPressed: () {
+                    Get.back();
+                    Get.back();
+                  },
+                  color: Color(0xFF42A5F5), // Blue accent for success
+                  radius: BorderRadius.circular(10.0),
+                ),
+              ],
+            ).show();
+          }
+        });
+      });
     }
   }
 

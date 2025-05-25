@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class MyTextField extends StatelessWidget {
+class MyTextField extends StatefulWidget {
   final String? initialData;
   final String? title;
   final bool? prefixIcon;
@@ -10,7 +10,7 @@ class MyTextField extends StatelessWidget {
   final String inputType;
   final int? maxLength;
 
-  MyTextField({
+  const MyTextField({
     Key? key,
     this.initialData,
     this.controller,
@@ -19,10 +19,30 @@ class MyTextField extends StatelessWidget {
     required this.icon,
     required this.inputType,
     this.maxLength,
-  }) : super(key: key) {
-    if (initialData != null) {
-      controller?.text = initialData!;
+  }) : super(key: key);
+
+  @override
+  _MyTextFieldState createState() => _MyTextFieldState();
+}
+
+class _MyTextFieldState extends State<MyTextField> {
+  late TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = widget.controller ?? TextEditingController();
+    if (widget.initialData != null) {
+      _controller.text = widget.initialData!;
     }
+  }
+
+  @override
+  void dispose() {
+    if (widget.controller == null) {
+      _controller.dispose();
+    }
+    super.dispose();
   }
 
   @override
@@ -33,7 +53,7 @@ class MyTextField extends StatelessWidget {
         Container(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Text(
-            title ?? "",
+            widget.title ?? "",
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -60,21 +80,38 @@ class MyTextField extends StatelessWidget {
             ],
           ),
           child: TextField(
-            controller: controller,
+            controller: _controller,
             keyboardType: _getKeyboardType(),
             inputFormatters: _getInputFormatters(),
-            maxLength: maxLength,
+            maxLength: widget.maxLength,
             onChanged: (value) {
-              if (inputType == "string") {
-                controller?.text = value.toUpperCase();
-                controller?.selection = TextSelection.fromPosition(
-                  TextPosition(offset: controller!.text.length),
+              // Cek jika title adalah "nama" atau "tempat lahir"
+              if ((widget.title == "Nama" || widget.title == "Tempat Lahir") &&
+                  RegExp(r'\d').hasMatch(value)) {
+                // Jika ada angka, batalkan input dengan menghapus angka
+                _controller.text = value.replaceAll(RegExp(r'\d'), '');
+                _controller.selection = TextSelection.fromPosition(
+                  TextPosition(offset: _controller.text.length),
                 );
+                // Tampilkan pesan error
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content:
+                      Text('${widget.title} tidak boleh mengandung angka.'),
+                ));
+              } else {
+                if (widget.inputType == "string") {
+                  setState(() {
+                    _controller.text = value.toUpperCase();
+                    _controller.selection = TextSelection.fromPosition(
+                      TextPosition(offset: _controller.text.length),
+                    );
+                  });
+                }
               }
             },
-            readOnly: inputType == "date",
+            readOnly: widget.inputType == "date",
             onTap: () {
-              if (inputType == "date") {
+              if (widget.inputType == "date") {
                 _selectDate(context);
               }
             },
@@ -92,12 +129,12 @@ class MyTextField extends StatelessWidget {
                 borderSide: const BorderSide(color: Colors.transparent),
                 borderRadius: BorderRadius.circular(15),
               ),
-              hintText: "Masukkan ${title ?? ''}",
+              hintText: "Masukkan ${widget.title ?? ''}",
               hintStyle: const TextStyle(
                 color: Colors.grey,
                 fontSize: 14,
               ),
-              prefixIcon: prefixIcon == true ? icon : null,
+              prefixIcon: widget.prefixIcon == true ? widget.icon : null,
               filled: true,
               fillColor: Colors.transparent,
               contentPadding:
@@ -111,17 +148,22 @@ class MyTextField extends StatelessWidget {
   }
 
   TextInputType _getKeyboardType() {
-    if (inputType == "number") return TextInputType.number;
+    if (widget.inputType == "number") return TextInputType.number;
     return TextInputType.text;
   }
 
   List<TextInputFormatter> _getInputFormatters() {
     List<TextInputFormatter> formatters = [];
-    if (inputType == "number") {
+    if (widget.inputType == "number") {
       formatters.add(FilteringTextInputFormatter.digitsOnly);
     }
-    if (maxLength != null) {
-      formatters.add(LengthLimitingTextInputFormatter(maxLength));
+    if (widget.maxLength != null) {
+      formatters.add(LengthLimitingTextInputFormatter(widget.maxLength));
+    }
+    if (widget.title == "Nama" ||
+        widget.title == "Tempat Lahir" ||
+        widget.title == "Pekerjaan") {
+      formatters.add(FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z\s]')));
     }
     return formatters;
   }
@@ -130,11 +172,14 @@ class MyTextField extends StatelessWidget {
     DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
+      firstDate: DateTime(DateTime.now().year - 100),
+      lastDate: DateTime.now(),
     );
     if (picked != null) {
-      controller?.text = "${picked.day}-${picked.month}-${picked.year}";
+      setState(() {
+        _controller.text =
+            "${picked.day.toString().padLeft(2, '0')}-${picked.month.toString().padLeft(2, '0')}-${picked.year}";
+      });
     }
   }
 }

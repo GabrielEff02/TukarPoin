@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:e_commerce/screen/auth/login_screen.dart';
 import 'package:intl/intl.dart';
 
 import 'dart:typed_data';
@@ -24,10 +25,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   bool isLoading = false;
   final ImagePicker picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController usernameController;
   late TextEditingController emailController;
-  late TextEditingController firstNameController;
-  late TextEditingController lastNameController;
+  late TextEditingController nameController;
   late TextEditingController phoneController;
   late TextEditingController pointsController;
   Map<String, String> listController = {};
@@ -41,10 +40,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   void initState() {
     super.initState();
-    usernameController = TextEditingController();
     emailController = TextEditingController();
-    firstNameController = TextEditingController();
-    lastNameController = TextEditingController();
+    nameController = TextEditingController();
     phoneController = TextEditingController();
     pointsController = TextEditingController();
     _fetchUserData();
@@ -52,33 +49,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   @override
   void dispose() {
-    usernameController.dispose();
     emailController.dispose();
-    firstNameController.dispose();
-    lastNameController.dispose();
+    nameController.dispose();
     phoneController.dispose();
     pointsController.dispose();
     super.dispose();
   }
 
   Future<void> _fetchUserData() async {
-    String? username = await LocalData.getData('user');
     String? email = await LocalData.getData('email');
     String? fullName = await LocalData.getData('full_name');
-
-    List<String>? nameParts = fullName.split(' ');
-
-    String? firstName = nameParts.isNotEmpty ? nameParts[0] : null;
-    String? lastName =
-        nameParts.length > 1 ? nameParts.sublist(1).join(' ') : null;
 
     String? phone = await LocalData.getData('phone');
     String? pointValue = await LocalData.getData('point');
     Uint8List image = await LocalData.getProfilePicture("profile_picture");
-    usernameController.text = username;
     emailController.text = email;
-    firstNameController.text = firstName ?? "";
-    lastNameController.text = lastName ?? "";
+    nameController.text = fullName ?? "";
     phoneController.text = phone;
     points = pointValue;
     pointsController.text = points; // Set points in the controller
@@ -144,11 +130,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.save),
-            onPressed: () => _saveProfile(),
+            onPressed: () => _confirmEditProfile(),
           ),
         ],
       ),
       body: Container(
+        height: double.infinity,
+        width: double.infinity,
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
@@ -217,18 +205,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 20),
-                      _buildCircularTextField(usernameController, 'Username',
+                      _buildCircularTextField(nameController, 'Name',
                           isReadOnly: true),
                       const SizedBox(height: 15),
                       _buildCircularTextField(emailController, 'Email'),
                       const SizedBox(height: 15),
                       _buildCircularTextField(
-                          firstNameController, 'First Name'),
-                      const SizedBox(height: 15),
-                      _buildCircularTextField(lastNameController, 'Last Name'),
-                      const SizedBox(height: 15),
-                      _buildCircularTextField(phoneController, 'Phone',
-                          isReadOnly: true), // Read-only phone field
+                          phoneController, 'Phone'), // Read-only phone field
                       const SizedBox(height: 15),
                       _buildCircularTextField(pointsController, 'Points',
                           isReadOnly: true,
@@ -303,6 +286,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
+  void _confirmEditProfile() {
+    Get.dialog(
+      AlertDialog(
+        title: Text("Are you sure?"),
+        content: Text("Do you really want to update your profile?"),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(), // Tutup dialog tanpa update
+            child: Text("No"),
+          ),
+          TextButton(
+            onPressed: () {
+              Get.back(); // Tutup dialog sebelum lanjut
+              _saveProfile(); // Jalankan update
+            },
+            child: Text("Yes"),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _saveProfile() async {
     Uint8List? lateImage;
 
@@ -320,21 +325,20 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     // Check if the image has been changed and update the listController
 
     // Update other profile fields
-    listController['username'] = usernameController.text;
     listController['email'] = emailController.text;
-    listController['first_name'] = firstNameController.text;
-    listController['last_name'] = lastNameController.text;
-
+    listController['name'] = nameController.text;
+    listController['phone'] = phoneController.text;
+    listController['username'] = await LocalData.getData('user');
+    print(listController.keys);
     if (_formKey.currentState!.validate()) {
       EditProfileController().postEditProfile(
           context: context,
           callback: (result, error) {
             if (result != null && result['error'] != true) {
               setState(() {
-                LocalData.saveData('user', listController['username']!);
                 LocalData.saveData('email', listController['email']!);
-                LocalData.saveData('full_name',
-                    "${listController['first_name']!} ${listController['last_name']!}");
+                LocalData.saveData('phone', listController['phone']!);
+                LocalData.saveData('full_name', listController['name']!);
                 LocalData.saveData(
                     'profile_picture', listController['profile_picture']!);
               });
@@ -347,7 +351,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   padding: const EdgeInsets.only(top: 10, bottom: 10),
                   backgroundColor: const Color.fromARGB(83, 0, 0, 0),
                   snackPosition: SnackPosition.BOTTOM);
+              if (result['phone'] == true) {
+                Get.offAll(LoginScreen());
+              }
             } else {
+              print(error);
               DialogConstant.alertError('Maaf ada kesalahan');
             }
           },

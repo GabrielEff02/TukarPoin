@@ -1,12 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.e_commerce">
+    package="com.gabjago.e_commerce">
 
     <!-- Permissions -->
     <uses-permission android:name="android.permission.CAMERA" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
     <application
-        android:label="E Commerce"
+        android:label="Tiara Group Member"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
 
@@ -38,6 +39,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name="id.mncinnovation.ocr.CaptureOCRActivity" android:theme="@style/Theme.AppCompat.Light.NoActionBar"/>
 
         <!-- OCR Activity -->
         <!-- <activity 

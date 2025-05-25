@@ -22,7 +22,6 @@ class ProvinceController extends GetxController {
     if (response.statusCode == 200) {
       var jsonData = json.decode(response.body);
       List<dynamic> provinsiList = jsonData;
-      print(provinsiList);
       provinsiList.sort((a, b) => a['name'].compareTo(b['name']));
 
       provinces.value =

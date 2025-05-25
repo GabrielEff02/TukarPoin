@@ -7,16 +7,16 @@ plugins {
 }
 
 android {
-    namespace = "com.example.e_commerce" // Ganti dengan namespace yang sesuai
+    namespace = "com.gabjago.e_commerce" // Ganti dengan namespace yang sesuai
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
     defaultConfig {
-        applicationId "com.example.e_commerce" // Ganti dengan applicationId yang sesuai
+        applicationId "com.gabjago.e_commerce" // Ganti dengan applicationId yang sesuai
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
-        versionCode flutter.versionCode
-        versionName flutter.versionName
+        versionCode 1
+        versionName "1.0.1"
         multiDexEnabled true // Jika menggunakan multidex
     }
 
@@ -29,9 +29,19 @@ android {
         jvmTarget = JavaVersion.VERSION_1_8
     }
 
+    signingConfigs {
+        release {
+            storeFile file("C:/Users/Gabriel/my-release-key.jks")  
+            storePassword "gabjago" 
+            keyAlias "gabjago"                    
+            keyPassword "gabjago"            
+        }
+    }
     buildTypes {
         release {
-            signingConfig signingConfigs.debug // Sesuaikan dengan konfigurasi signing Anda
+            signingConfig signingConfigs.release  
+            minifyEnabled false
+            shrinkResources false
         }
     }
 }
@@ -39,6 +49,7 @@ android {
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:33.6.0')
     implementation 'com.android.support:multidex:1.0.3' // Jika diperlukan untuk multidex
+    implementation 'androidx.appcompat:appcompat:1.6.1'
 }
 
 flutter {

@@ -21,7 +21,7 @@ class ImageOnlineWidget extends StatelessWidget {
         ),
       ),
       // errorWidget: (context, url, error)=>Image.asset(ImageConstant.placeHolderElsimil),
-      fit: BoxFit.cover,
+      fit: BoxFit.fill,
     );
   }
 }
