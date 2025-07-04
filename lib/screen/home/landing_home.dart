@@ -1,9 +1,8 @@
 import 'package:e_commerce/NavBar.dart';
 import 'package:e_commerce/api/notification_api.dart';
 import 'package:e_commerce/screen/auth/splash_screen.dart';
-import 'package:e_commerce/screen/gabriel/checkouts/main_checkouts.dart';
+import 'package:e_commerce/screen/gabriel/core/app_export.dart';
 import 'package:e_commerce/screen/gabriel/notifications/notification_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:e_commerce/screen/home/view/landing_screen.dart';
 import 'package:e_commerce/screen/home/view/profile_screen.dart';
@@ -89,7 +88,8 @@ class _LandingHomeState extends State<LandingHome>
               actions: [
                 IconButton(
                   onPressed: () {
-                    mainCheckouts();
+                    Navigator.pushReplacementNamed(
+                        context, AppRoutes.showItemsScreen);
                   },
                   icon: Icon(
                     Icons.shopping_cart,

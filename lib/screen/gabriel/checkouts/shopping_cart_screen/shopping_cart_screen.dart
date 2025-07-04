@@ -102,21 +102,7 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
                   color: appTheme.gray30099,
                   borderRadius: BorderRadius.all(Radius.circular(10.h)),
                 ),
-                child: FutureBuilder<Widget>(
-                  future: widget.items.isNotEmpty
-                      ? _showProductCards(context, widget.items)
-                      : Future.value(Container()),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    } else if (snapshot.hasError) {
-                      return Center(child: Text('Error: ${snapshot.error}'));
-                    } else if (!snapshot.hasData) {
-                      return Container();
-                    }
-                    return snapshot.data!;
-                  },
-                ),
+                child: _showProductCards(context, widget.items),
               ),
             ),
             _buildStickyBottomSection(context),
@@ -136,38 +122,37 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
       };
       if (await LocalData.containsKey('detailKTP')) {
         ShoppingCartController().postTransactions(
-            context: context,
-            callback: (result, error) {
-              if (result != null && result['error'] != true) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    backgroundColor: const Color.fromARGB(88, 0, 0, 0),
-                    content: Row(
-                      children: [
-                        Icon(
-                          Icons.check,
-                          color: Colors.red,
+          context: context,
+          callback: (result, error) {
+            if (result != null && !result.containsKey('error')) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  backgroundColor: const Color.fromARGB(88, 0, 0, 0),
+                  content: Row(
+                    children: [
+                      Icon(
+                        Icons.check,
+                        color: Colors.green, // ganti warna sukses
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Transaction Success!',
+                          style: TextStyle(color: Colors.white),
                         ),
-                        SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'Transaction Success!!!',
-                            style: TextStyle(
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
-              } else {
-                DialogConstant.alertError(error.toString());
-              }
-              ;
-            },
-            postTransaction: postTransaction,
-            postTransactionDetail: items);
+                ),
+              );
+            } else {
+              final msg = result?['error'] ?? error.toString();
+              DialogConstant.alertError(msg);
+            }
+          },
+          postTransaction: postTransaction,
+          postTransactionDetail: items,
+        );
       } else {
         Get.to(KtpOCR(postTransaction: postTransaction, postDetail: items));
       }
@@ -266,8 +251,7 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
     );
   }
 
-  Future<Widget> _showProductCards(
-      BuildContext context, List<dynamic> items) async {
+  Widget _showProductCards(BuildContext context, List<dynamic> items) {
     totalQuantityFinal = 0;
     totalPriceFinal = 0;
     NumberFormat currencyFormatter = NumberFormat.currency(
@@ -276,15 +260,15 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
       decimalDigits: 0,
     );
 
-    items.sort((a, b) => a['product_id'].compareTo(b['product_id']));
+    items.sort((a, b) => a['kode'].compareTo(b['kode']));
     List<Map<String, dynamic>> filteredItems = items
         .where((item) =>
             item['quantity_selected'] > 0) // Filter where quantity > 0
         .map((item) {
       return {
-        'image': "${API.BASE_URL}/images/${item['image_url']}",
-        'product': item['product_name'],
-        'product description': item['product_description'],
+        'image': "${API.BASE_URL}/images/hadiah_stiker/${item['image_url']}",
+        'product': item['nama'],
+        'product description': item['deskripsi'],
         'quantity': item['quantity_selected'],
         'price': item['price'],
         'total price': item['price'] * item['quantity_selected']
@@ -324,8 +308,8 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Image.network(
-              product['image'],
+            CustomImageView(
+              imagePath: product['image'],
               width: 50,
               height: 50,
             ),

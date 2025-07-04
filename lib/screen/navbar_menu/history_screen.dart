@@ -466,15 +466,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: Image.network(
-                                "${API.BASE_URL}/images/${item['image_url']}",
+                              child: CustomImageView(
+                                imagePath:
+                                    "${API.BASE_URL}/images/hadiah_stiker/${item['image_url']}",
                                 width: 60,
                                 height: 60,
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(Icons.image_not_supported,
-                                      size: 60, color: Colors.grey);
-                                },
                               ),
                             ),
                             SizedBox(width: 12),
@@ -483,7 +480,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    item['product_name'],
+                                    item['nama'],
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,

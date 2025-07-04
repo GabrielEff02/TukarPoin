@@ -47,7 +47,7 @@ class _List1ItemWidgetState extends State<List1ItemWidget> {
       final datas = jsonDecode(await LocalData.getData('cart'));
       final compan = await LocalData.getData('compan_code');
       for (dynamic data in datas[compan]) {
-        if (data == widget.data!['product_id'].toString()) {
+        if (data == widget.data!['kode'].toString()) {
           setState(() {
             if (_quantity <
                 (widget.data!['quantity'] is String
@@ -72,7 +72,7 @@ class _List1ItemWidgetState extends State<List1ItemWidget> {
       cartData = List<String>.from(cart[compan].map((data) => data.toString()));
     }
 
-    String productId = widget.data!['product_id'].toString();
+    String productId = widget.data!['kode'].toString();
 
     if (addData) {
       cartData.add(productId);
@@ -186,7 +186,7 @@ class _List1ItemWidgetState extends State<List1ItemWidget> {
                 color: Colors.white,
                 child: CustomImageView(
                   imagePath:
-                      "${API.BASE_URL}/images/${widget.data!['image_url']}",
+                      "${API.BASE_URL}/images/hadiah_stiker/${widget.data!['image_url']}",
                   height: 225.v,
                   alignment: Alignment.center,
                   fit: BoxFit.fill,
@@ -199,7 +199,7 @@ class _List1ItemWidgetState extends State<List1ItemWidget> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.data!['product_name'],
+                    widget.data!['nama'],
                     style: const TextStyle(
                         color: Color.fromARGB(255, 6, 136, 112),
                         fontWeight: FontWeight.bold,

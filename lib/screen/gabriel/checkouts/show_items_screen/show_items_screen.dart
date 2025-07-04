@@ -108,7 +108,6 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
       final listData = await CheckoutsData.getInitData(compan);
 
       productData = listData['productData'];
-
       if (datas.keys.contains(compan)) {
         List<int> uniquePriorityOrder = [];
         for (String data in datas[compan]) {
@@ -122,8 +121,10 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
           selectedItems = [];
 
           productData.sort((a, b) {
-            int productIdA = a["product_id"] as int;
-            int productIdB = b["product_id"] as int;
+            int productIdA =
+                a["kode"] is String ? int.parse(a["kode"]) : a["kode"];
+            int productIdB =
+                b["kode"] is String ? int.parse(b["kode"]) : b["kode"];
 
             int indexA = uniquePriorityOrder.indexOf(productIdA);
             int indexB = uniquePriorityOrder.indexOf(productIdB);
@@ -147,8 +148,8 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
 
   void _onQuantityChanged(dynamic updatedData) {
     setState(() {
-      int index = displayedItems.indexWhere(
-          (item) => (item['product_id']) == updatedData['product_id']);
+      int index = displayedItems
+          .indexWhere((item) => (item['kode']) == updatedData['kode']);
       if (index != -1) {
         displayedItems[index] = updatedData;
       }
@@ -156,12 +157,12 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
         updatedData['quantity'] = int.parse(updatedData['quantity']);
 
       if (updatedData['quantity'] > 0) {
-        selectedItems.removeWhere(
-            (item) => item['product_id'] == updatedData['product_id']);
+        selectedItems
+            .removeWhere((item) => item['kode'] == updatedData['kode']);
         selectedItems.add(updatedData);
       } else {
-        selectedItems.removeWhere(
-            (item) => item['product_id'] == updatedData['product_id']);
+        selectedItems
+            .removeWhere((item) => item['kode'] == updatedData['kode']);
       }
       totalPrice = selectedItems.fold(
           0,
@@ -229,7 +230,7 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
                           var widgetData = displayedItems[index];
 
                           return List1ItemWidget(
-                            key: ValueKey(widgetData['product_id']),
+                            key: ValueKey(widgetData['kode']),
                             data: widgetData,
                             color: color = !color,
                             onQuantityChanged: _onQuantityChanged,

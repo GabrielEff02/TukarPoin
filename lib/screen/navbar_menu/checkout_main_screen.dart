@@ -26,7 +26,7 @@ class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
 
   // void filterProducts(String query) {
   //   final result = productData.where((product) {
-  //     final name = product['product_name'].toString().toLowerCase();
+  //     final name = product['nama'].toString().toLowerCase();
   //     final desc = product['product_description'].toString().toLowerCase();
   //     final searchLower = query.toLowerCase();
   //     return name.contains(searchLower) || desc.contains(searchLower);
@@ -122,7 +122,7 @@ class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
               selectedCompanyCode = newValue!;
             });
             LocalData.saveData('compan_code', selectedCompanyCode);
-            getProductData();
+            loadInitialData();
           },
         ),
       ]),
@@ -174,11 +174,9 @@ class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
               children: productRow(searchController.text == ''
                   ? productData
                   : productData.where((product) {
-                      final name =
-                          product['product_name'].toString().toLowerCase();
-                      final desc = product['product_description']
-                          .toString()
-                          .toLowerCase();
+                      final name = product['nama'].toString().toLowerCase();
+                      final desc =
+                          product['deskripsi'].toString().toLowerCase();
                       final searchLower = searchController.text.toLowerCase();
                       return name.contains(searchLower) ||
                           desc.contains(searchLower);
@@ -247,7 +245,8 @@ class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             CustomImageView(
-              imagePath: "${API.BASE_URL}/images/${product['image_url']}",
+              imagePath:
+                  "${API.BASE_URL}/images/hadiah_stiker/${product['image_url']}",
               height: 150, // Adjust image height as needed
               width: double.infinity,
               alignment: Alignment.center,
@@ -255,7 +254,7 @@ class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
             SizedBox(height: 12), // Space between image and text
             Text(
               maxLines: 2,
-              product['product_name'], // Product name
+              product['nama'], // Product name
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 18, // Increase font size

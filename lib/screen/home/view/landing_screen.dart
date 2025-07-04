@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 
 import 'package:barcode/barcode.dart';
 import 'package:e_commerce/constant/text_constant.dart';
-import 'package:e_commerce/screen/auth/splash_screen.dart';
 import 'package:e_commerce/screen/gabriel/notifications/item_screen.dart';
 import 'package:e_commerce/screen/gabriel/request_item/request_item_screen/request_item_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -14,7 +13,6 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../../../controller/landing_controller.dart';
-import '../../../screen/gabriel/checkouts/main_checkouts.dart';
 import '../../../screen/gabriel/core/app_export.dart';
 
 class LandingScreen extends StatefulWidget {
@@ -31,24 +29,11 @@ class _LandingScreenState extends State<LandingScreen> {
   Map<String, dynamic> categoryData = {};
   void initState() {
     super.initState();
-    getCategoryData();
   }
 
   @override
   void dispose() {
     super.dispose();
-  }
-
-  Future<void> getCategoryData() async {
-    await SplashScreen.getSplashData();
-
-    final fetchData = await LandingScreenData.getCategoryData();
-    setState(() {
-      categoryData.addAll(<String, dynamic>{'All': 'All'});
-
-      categoryData.addEntries(fetchData.entries);
-      controller.categoryData.value = fetchData;
-    });
   }
 
   @override
@@ -660,9 +645,7 @@ class _LandingScreenState extends State<LandingScreen> {
     name = name.toUpperCase();
     return InkWell(
       onTap: () {
-        (category != 'All')
-            ? mainCheckouts(filterCategory: category.split(' ').last)
-            : mainCheckouts();
+        Navigator.pushReplacementNamed(context, AppRoutes.showItemsScreen);
       },
       child: Column(
         children: [

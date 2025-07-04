@@ -15,7 +15,7 @@ android {
         applicationId "com.gabjago.e_commerce" // Ganti dengan applicationId yang sesuai
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
-        versionCode 1
+        versionCode 3
         versionName "1.0.1"
         multiDexEnabled true // Jika menggunakan multidex
     }

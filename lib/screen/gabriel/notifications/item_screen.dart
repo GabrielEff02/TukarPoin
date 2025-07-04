@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'package:e_commerce/screen/gabriel/checkouts/main_checkouts.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:intl/intl.dart';
@@ -106,7 +105,7 @@ class _ItemScreenState extends State<ItemScreen> {
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(30),
                       child: Image.network(
-                        '${API.BASE_URL}/images/${widget.data['image_url']}',
+                        '${API.BASE_URL}/images/hadiah_stiker/${widget.data['image_url']}',
                         height: 250,
                         fit: BoxFit.cover,
                       ),
@@ -143,7 +142,7 @@ class _ItemScreenState extends State<ItemScreen> {
                     children: [
                       // Title
                       Text(
-                        widget.data['product_name'] ?? 'Unknown Product',
+                        widget.data['nama'] ?? 'Unknown Product',
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -183,8 +182,7 @@ class _ItemScreenState extends State<ItemScreen> {
                       const SizedBox(height: 12),
                       // Description
                       Text(
-                        widget.data['product_description'] ??
-                            'No description available.',
+                        widget.data['deskripsi'] ?? 'Tidak Ada Deskripsi.',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey.shade800,
@@ -278,8 +276,8 @@ class _ItemScreenState extends State<ItemScreen> {
       floatingActionButton: checkCompan
           ? FloatingActionButton(
               onPressed: () async {
-                _bukaModalStok(widget.data['quantity'],
-                    widget.data['product_name'], widget.data['price']);
+                _bukaModalStok(widget.data['quantity'], widget.data['nama'],
+                    widget.data['price']);
               },
               backgroundColor: Colors.deepPurple,
               child: Icon(Icons.shopping_cart, color: Colors.white),
@@ -292,7 +290,7 @@ class _ItemScreenState extends State<ItemScreen> {
   Future<List<Map<String, dynamic>>> getStockDetail() async {
     try {
       final response = await http.get(Uri.parse(
-          '${API.BASE_URL}/get_stockDetail.php?product_id=${widget.data['product_id']}'));
+          '${API.BASE_URL}/get_stockDetail.php?kode=${widget.data['kode']}'));
 
       if (response.statusCode == 200) {
         // Mengonversi JSON response menjadi List<Map<String, dynamic>>
@@ -318,21 +316,6 @@ class _ItemScreenState extends State<ItemScreen> {
     int jumlah = 1;
     TextEditingController jumlahController =
         TextEditingController(text: jumlah.toString());
-    String formatText(String text) {
-      ;
-
-      if (text.length <= 20) {
-        return text;
-      } else {
-        String result = text.substring(0, 17);
-
-        if (result.endsWith(' ')) {
-          result = text.substring(0, 16);
-        }
-
-        return '$result...';
-      }
-    }
 
     showModalBottomSheet(
       context: context,
@@ -477,12 +460,12 @@ class _ItemScreenState extends State<ItemScreen> {
                           for (int i = 0; i < jumlah; i++) {
                             cardData
                                 .putIfAbsent(compan, () => [])
-                                .add(widget.data['product_id']);
+                                .add(widget.data['kode']);
                           }
 
                           LocalData.saveData('cart', jsonEncode(cardData));
-
-                          mainCheckouts(filterCategory: 'all');
+                          Navigator.pushReplacementNamed(
+                              context, AppRoutes.showItemsScreen);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,

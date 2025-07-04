@@ -10,7 +10,8 @@ class API {
   // static String BASE_URL = 'http://192.168.0.109/e_commerce';
   // static String BASE_URL = 'http://10.0.2.2/e_commerce';
   // static String BASE_URL = 'https://lightz.tiaragatzu.co.id';
-  static String BASE_URL = 'https://modisyst.com/lightz/point_app';
+  static String BASE_URL = 'https://tiaraapkpoin.cloud/lightz/point_app';
+  // static String BASE_URL = 'https://modisyst.com/lightz/point_app';
 
   // static String BASE_URL = 'https://dharmaguna.id/tokool';
 

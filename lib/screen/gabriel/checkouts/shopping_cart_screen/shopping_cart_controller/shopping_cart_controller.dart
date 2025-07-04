@@ -1,51 +1,60 @@
+import 'dart:convert';
+
 import 'package:e_commerce/screen/auth/second_splash.dart';
 import 'package:e_commerce/screen/gabriel/core/app_export.dart';
 import 'package:get/get.dart';
 
 class ShoppingCartController {
-  Future<void> postTransactions(
-      {BuildContext? context,
-      void callback(result, exception)?,
-      Map<String, dynamic>? postTransaction,
-      List<dynamic>? postTransactionDetail}) async {
-    var header = <String, String>{};
+  Future<void> postTransactions({
+    BuildContext? context,
+    void Function(dynamic result, dynamic exception)? callback,
+    Map<String, dynamic>? postTransaction,
+    List<dynamic>? postTransactionDetail,
+  }) async {
+    final header = <String, String>{
+      'Content-Type': 'application/json',
+    };
 
-    header['Content-Type'] = 'application/json';
-    String username = await LocalData.getData("user");
+    final username = await LocalData.getData("user");
     final companCode = await LocalData.getData('compan_code');
+
+    // Siapkan items dari postTransactionDetail
+    final items = postTransactionDetail!.map((transaction) {
+      final price = transaction['price'];
+      final quantity = transaction['quantity_selected'];
+      return {
+        'kode': transaction['kode'],
+        'quantity': quantity,
+        'total_price': price * quantity,
+        'compan_code': companCode
+      };
+    }).toList();
+
+    // Gabungkan semua data ke postTransaction
     postTransaction!['username'] = username;
+    postTransaction['items'] = items;
+
     API.basePost('/update_transaction.php', postTransaction, header, true,
-        (result, error) {
-      for (dynamic transaction in postTransactionDetail!) {
-        final postDetail = {
-          'username': username,
-          'product_id': transaction['product_id'],
-          'quantity': transaction['quantity_selected'],
-          'total_price':
-              transaction['price'] * transaction['quantity_selected'],
-          'compan_code': companCode
-        };
-        API.basePost('/update_transaction_detail.php', postDetail, header, true,
-            (result, error) async {
-          if (error != null) {
-            callback!(null, error);
-          } else {
-            LocalData.saveData('point',
-                '${int.parse(await LocalData.getData('point')) - (transaction['price'] * transaction['quantity_selected'])}');
-            LocalData.removeData('cart');
-          }
-        });
-      }
-      Future.delayed(Duration(seconds: 4), () {
+        (result, error) async {
+      if (error != null) {
+        callback?.call(null, error);
+      } else {
+        // Update local point
+        int currentPoint = int.parse(await LocalData.getData('point'));
+        int totalHarga =
+            items.fold(0, (sum, item) => sum + item['total_price'] as int);
+        LocalData.saveData('point', (currentPoint - totalHarga).toString());
+
+        // Hapus cart berdasarkan compan_code
+        final cart = jsonDecode(await LocalData.getData('cart'));
+        cart.remove(companCode);
+        LocalData.saveData('cart', jsonEncode(cart));
+
+        // Navigasi dan callback
         Get.back();
         Get.to(SecondSplash());
-        if (error != null) {
-          callback!(null, error);
-        }
-        if (result != null) {
-          callback!(result, null);
-        }
-      });
+        callback?.call(result, null);
+      }
     });
   }
 }
