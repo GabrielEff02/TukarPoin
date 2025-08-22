@@ -1,3 +1,4 @@
+import 'package:e_commerce/screen/home/landing_home.dart';
 import 'package:e_commerce/screen/ocr_ktp/view/home.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -54,8 +55,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     if (result['data'][0]['register_confirmation'] == '0') {
                       Get.to(() => VerifyPhoneScreen());
                     } else {
-                      // Get.offAll(KtpOCR());
-                      Get.offAll(SplashScreen());
+                      Get.offAll(LandingHome());
+                      // Get.offAll(SplashScreen());
                     }
                   } else {
                     DialogConstant.alertError(error.toString());

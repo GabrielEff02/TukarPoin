@@ -1,268 +1,427 @@
-import 'package:barcode/barcode.dart';
+import 'package:e_commerce/constant/dialog_constant.dart';
+
 import '../../../screen/gabriel/core/app_export.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../constant/text_constant.dart';
 import '../../../screen/auth/login_screen.dart';
 import '../../navbar_menu/contact_screen.dart';
 import '../../../screen/home/view/edit_profile_screen.dart';
 import '../../../screen/srg/security_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  // Add state variables here if needed
+  String userName = "";
+  String userEmail = "";
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserData();
+    });
+  }
+
+  Future<void> _loadUserData() async {
+    // Add your data loading logic here
+    // For example, load from local storage or API
+    try {
+      DialogConstant.loading(context, "Loading...");
+      final username = await LocalData.getData('user');
+      final email = await LocalData.getData('email');
+      if (username.isNotEmpty) {
+        setState(() {
+          userName = username;
+        });
+      }
+      if (email.isNotEmpty) {
+        setState(() {
+          userEmail = email;
+        });
+      }
+
+      await Future.delayed(
+          const Duration(milliseconds: 500)); // Simulate loading
+    } catch (e) {
+      print('Error loading user data: $e');
+    } finally {
+      Get.back();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20),
-          child: Center(
-            child: const Text(
-              "ACCOUNT",
-              style: TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.w800,
-                fontSize: 20,
-              ),
-              textAlign: TextAlign.center,
-            ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: Text(
+          "PROFILE",
+          style: GoogleFonts.poppins(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 22,
+            letterSpacing: 1.2,
           ),
         ),
+        centerTitle: true,
       ),
-      backgroundColor: Colors.transparent,
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFFB3E5FC), // Light blue
-              Color.fromARGB(255, 61, 192, 253), // Medium light blue
+              Color(0xFF667eea),
+              Color(0xFF764ba2),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
         ),
-        height: double.infinity,
-        width: double.infinity,
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(20),
-              child: SingleChildScrollView(
+        child: SafeArea(
+          child: Column(
+            children: [
+              // Profile Header Section
+              Container(
+                padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    // Row(
-                    //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    //   children: [
-                    //     GestureDetector(
-                    //       onTap: () => _showBarcodePopup(context, false),
-                    //       child: itemMenu("Barcode", FontAwesomeIcons.barcode,
-                    //           barcode: true),
-                    //     ),
-                    //     GestureDetector(
-                    //       onTap: () => _showBarcodePopup(context, true),
-                    //       child: itemMenu("QR Code", Icons.qr_code_2,
-                    //           barcode: true),
-                    //     ),
-                    //   ],
-                    // ),
-                    // const SizedBox(height: 5),
-                    GestureDetector(
-                      onTap: () => Get.to(() => const EditProfileScreen()),
-                      child: itemMenu('Account Detail', Icons.person),
+                    // Profile Avatar
+                    Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.3),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.white,
+                        child: CircleAvatar(
+                          radius: 45,
+                          backgroundColor: Colors.grey[300],
+                          child: Icon(
+                            Icons.person,
+                            size: 50,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ),
                     ),
-                    // const SizedBox(height: 5),
-                    // GestureDetector(
-                    //   onTap: () => Get.to(() => AddressListScreen()),
-                    //   child: itemMenu('Address Detail', Icons.house),
-                    // ),
-                    const SizedBox(height: 5),
-                    GestureDetector(
-                      onTap: () => Get.to(() => SecurityScreen()),
-                      child: itemMenu('Security', Icons.lock),
+                    const SizedBox(height: 15),
+                    // User Name
+                    Text(
+                      userName,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     const SizedBox(height: 5),
-                    GestureDetector(
-                      onTap: () => Get.to(() => const ContactScreen()),
-                      child: itemMenu('Contact Us', Icons.call),
-                    ),
-                    const SizedBox(height: 5),
-                    GestureDetector(
-                      onTap: () {
-                        LocalData.removeAllPreference();
-                        Get.offAll(const LoginScreen());
-                      },
-                      child: itemMenu('Log Out', Icons.exit_to_app_rounded),
+                    // User Email
+                    Text(
+                      userEmail,
+                      style: GoogleFonts.poppins(
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w400,
+                      ),
                     ),
                   ],
                 ),
               ),
-            ),
-          ],
+
+              // Menu Items Section
+              Expanded(
+                child: Container(
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF8F9FA),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(30),
+                      topRight: Radius.circular(30),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 20),
+
+                          // Account Detail
+                          _buildMenuItem(
+                            title: 'Account Detail',
+                            icon: Icons.person_outline,
+                            gradientColors: [
+                              Color(0xFF4facfe),
+                              Color(0xFF00f2fe)
+                            ],
+                            onTap: () => _navigateToEditProfile(),
+                          ),
+
+                          // Security
+                          _buildMenuItem(
+                            title: 'Security',
+                            icon: Icons.security_outlined,
+                            gradientColors: [
+                              Color(0xFFfa709a),
+                              Color(0xFFfee140)
+                            ],
+                            onTap: () => _navigateToSecurity(),
+                          ),
+
+                          // Contact Us
+                          _buildMenuItem(
+                            title: 'Contact Us',
+                            icon: Icons.support_agent_outlined,
+                            gradientColors: [
+                              Color(0xFF43e97b),
+                              Color(0xFF38f9d7)
+                            ],
+                            onTap: () => _navigateToContact(),
+                          ),
+
+                          const SizedBox(height: 30),
+
+                          // Logout Button
+                          Container(
+                            width: double.infinity,
+                            height: 55,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFff6b6b), Color(0xFFee5a24)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(15),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Color(0xFFff6b6b).withOpacity(0.4),
+                                  blurRadius: 15,
+                                  spreadRadius: 0,
+                                  offset: const Offset(0, 8),
+                                ),
+                              ],
+                            ),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                borderRadius: BorderRadius.circular(15),
+                                onTap: () => _showLogoutDialog(context),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.logout_rounded,
+                                      color: Colors.white,
+                                      size: 22,
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Text(
+                                      'Log Out',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: 80.v),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  Widget itemMenu(String title, IconData icons,
-      {bool barcode = false, bool point = false}) {
-    final decoration = barcode
-        ? BoxDecoration(
-            gradient: const LinearGradient(
-                // colors: [Color.fromARGB(255, 204, 239, 237), Color(0xFF80CBC4)],
-                // colors: [Color(0xFFD7C49E), Color(0xFFA67C47)],4
-                // colors: [Color(0xFFE7D3E2), Color(0xFFC0A3C6)],
-                colors: [Color(0xFFFF6F61), Color(0xFFFFB74D)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight),
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: const [
-              BoxShadow(
-                color: Colors.black26,
-                blurRadius: 8,
-                spreadRadius: 1,
-                offset: Offset(0, 4),
-              ),
-            ],
-          )
-        : point
-            ? BoxDecoration(
-                color: Color.fromARGB(255, 255, 255, 255),
-                // gradient: LinearGradient(
-                //   colors: [Colors.orangeAccent, Colors.deepOrange],
-                //   begin: Alignment.topLeft,
-                //   end: Alignment.bottomRight,
-                // ),
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: Color(0xFFF8E2C8).withValues(alpha: 100),
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              )
-            : BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 8,
-                    spreadRadius: 1,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              );
+  Widget _buildMenuItem({
+    required String title,
+    required IconData icon,
+    required List<Color> gradientColors,
+    required VoidCallback onTap,
+  }) {
     return Container(
-      decoration: decoration,
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      margin: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          point
-              ? Icon(
-                  Icons.stars,
-                  color: Colors.black,
-                  size: 40,
-                )
-              : Icon(icons, color: Colors.black87),
-          const SizedBox(width: 15),
-          point
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Your Points",
-                      style: GoogleFonts.poppins(
-                        color: Colors.black,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+      margin: const EdgeInsets.only(bottom: 15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(15),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            blurRadius: 10,
+            spreadRadius: 0,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(15),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: gradientColors,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
                     ),
-                    Text(
-                      title,
-                      style: GoogleFonts.poppins(
-                        color: Colors.black,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: gradientColors[0].withOpacity(0.3),
+                        blurRadius: 8,
+                        spreadRadius: 0,
+                        offset: const Offset(0, 4),
                       ),
-                    ),
-                  ],
-                )
-              : Text(
-                  title,
-                  style: TextConstant.medium.copyWith(
-                    color: Colors.black87,
-                    fontSize: 15,
+                    ],
+                  ),
+                  child: Icon(
+                    icon,
+                    color: Colors.white,
+                    size: 24,
                   ),
                 ),
-        ],
+                const SizedBox(width: 20),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      color: Colors.grey[800],
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: Colors.grey[400],
+                  size: 18,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  void _showBarcodePopup(BuildContext context, bool isQRCode) {
+  // Navigation methods
+  void _navigateToEditProfile() async {
+    final result = await Get.to(() => const EditProfileScreen());
+    // Refresh user data if needed after editing profile
+    if (result == true) {
+      _loadUserData();
+    }
+  }
+
+  void _navigateToSecurity() {
+    Get.to(() => SecurityScreen());
+  }
+
+  void _navigateToContact() {
+    Get.to(() => const ContactScreen());
+  }
+
+  void _showLogoutDialog(BuildContext context) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return FutureBuilder(
-          future: LocalData.getData('phone'),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return const Center(child: Icon(Icons.error));
-            } else if (!snapshot.hasData || snapshot.data == null) {
-              return const Center(child: Icon(Icons.error)); // If no data
-            }
-
-            final code = isQRCode
-                ? Barcode.qrCode().toSvg(snapshot.data.toString())
-                : Barcode.code39().toSvg(snapshot.data.toString());
-
-            return TweenAnimationBuilder<double>(
-              tween: Tween<double>(begin: 1.0, end: 1.1),
-              duration: const Duration(milliseconds: 500),
-              builder: (context, scale, child) {
-                return Transform.scale(
-                  scale: scale,
-                  child: Dialog(
-                    child: Container(
-                      height: 400,
-                      decoration: const BoxDecoration(color: Colors.white),
-                      padding: const EdgeInsets.symmetric(vertical: 20),
-                      child: Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 10),
-                              child: SvgPicture.string(code,
-                                  height: isQRCode ? 200 : 250,
-                                  width: isQRCode ? 200 : 200,
-                                  fit:
-                                      isQRCode ? BoxFit.cover : BoxFit.contain),
-                            ),
-                            const SizedBox(height: 10),
-                            if (isQRCode) // Display text only for QR Code
-                              Text(
-                                snapshot.data.toString(),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            );
-          },
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            'Confirm Logout',
+            style: GoogleFonts.poppins(
+              fontWeight: FontWeight.w600,
+              fontSize: 18,
+            ),
+          ),
+          content: Text(
+            'Are you sure you want to log out?',
+            style: GoogleFonts.poppins(
+              fontSize: 14,
+              color: Colors.grey[600],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                'Cancel',
+                style: GoogleFonts.poppins(
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            TextButton(
+              onPressed: () => _handleLogout(),
+              child: Text(
+                'Logout',
+                style: GoogleFonts.poppins(
+                  color: Color(0xFFff6b6b),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
+  }
+
+  void _handleLogout() async {
+    Navigator.of(context).pop();
+
+    DialogConstant.loading(context, "Logging out...");
+
+    try {
+      // Clear user data
+      await LocalData.removeAllPreference();
+
+      // Navigate to login screen
+      Get.offAll(const LoginScreen());
+    } catch (e) {
+      print('Error during logout: $e');
+      // Show error message if needed
+    } finally {
+      Get.back(); // Close the loading dialog
+    }
+  }
+
+  @override
+  void dispose() {
+    // Clean up any resources if needed
+    super.dispose();
   }
 }

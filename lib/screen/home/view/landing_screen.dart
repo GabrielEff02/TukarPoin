@@ -165,9 +165,8 @@ class _LandingScreenState extends State<LandingScreen> {
 
                                 var point = snapshot.data![0];
                                 var balance = snapshot.data![1];
-                                return Expanded(
-                                    child: itemMenu(
-                                        point: true, value: [point, balance]));
+                                return itemMenu(
+                                    point: true, value: [point, balance]);
                               },
                             ),
                           ],
@@ -296,6 +295,8 @@ class _LandingScreenState extends State<LandingScreen> {
                   ? Colors.blue
                   : const Color.fromARGB(255, 255, 166, 0),
               child: Container(
+                width: 285.h,
+                padding: EdgeInsets.all(10.adaptSize),
                 decoration: decoration,
                 margin: EdgeInsets.symmetric(horizontal: 10.h, vertical: 5.v),
                 child: Row(

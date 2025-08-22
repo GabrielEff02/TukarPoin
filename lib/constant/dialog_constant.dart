@@ -12,105 +12,194 @@ class DialogConstant {
     );
   }
 
-  static void alertError(String message, {VoidCallback? function}) {
-  showDialog(
-    context: Get.context!,
-    barrierDismissible: true,
-    builder: (BuildContext context) {
-      return Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        elevation: 16,
-        backgroundColor: Colors.white,
-        child: AnimatedScale(
-          scale: 1.1,
-          duration: Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Add a subtle animation for the icon to make it more dynamic
-                AnimatedOpacity(
-                  opacity: 1.0,
-                  duration: Duration(milliseconds: 500),
-                  child: Icon(
-                    Icons.error_outline,
-                    color: Colors.redAccent,
-                    size: 60,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Oops!',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                AnimatedOpacity(
-                  opacity: 1.0,
-                  duration: Duration(milliseconds: 500),
-                  child: Text(
-                    message,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[800],
-                      height: 1.4,
+  static void alert(String message, {VoidCallback? function}) {
+    showDialog(
+      context: Get.context!,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 16,
+          backgroundColor: Colors.white,
+          child: AnimatedScale(
+            scale: 1.1,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Add a subtle animation for the icon to make it more dynamic
+                  AnimatedOpacity(
+                    opacity: 1.0,
+                    duration: Duration(milliseconds: 500),
+                    child: Icon(
+                      Icons.error_outline,
+                      color: Colors.redAccent,
+                      size: 60,
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      elevation: 5,
-                    ),
+                  const SizedBox(height: 16),
+
+                  AnimatedOpacity(
+                    opacity: 1.0,
+                    duration: Duration(milliseconds: 500),
                     child: Text(
-                      'OKE',
+                      message,
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 18,
-                        color: Colors.white,
+                        fontSize: 16,
+                        color: Colors.grey[800],
+                        height: 1.4,
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      if (message.contains("tidak dapat diproses")) {
-                        Navigator.pop(context);
-                        Navigator.pushNamedAndRemoveUntil(
-                          context,
-                          "/detail_pesanan_page",
-                          (Route<dynamic> route) => false,
-                        );
-                      } else {
-                        if (function != null) {
-                          function();
-                        }
-                      }
-                    },
                   ),
-                ),
-              ],
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 5,
+                      ),
+                      child: Text(
+                        'OKE',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        if (message.contains("tidak dapat diproses")) {
+                          Navigator.pop(context);
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            "/detail_pesanan_page",
+                            (Route<dynamic> route) => false,
+                          );
+                        } else {
+                          if (function != null) {
+                            function();
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
 
+  static void alertError(String message, {VoidCallback? function}) {
+    showDialog(
+      context: Get.context!,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 16,
+          backgroundColor: Colors.white,
+          child: AnimatedScale(
+            scale: 1.1,
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Add a subtle animation for the icon to make it more dynamic
+                  AnimatedOpacity(
+                    opacity: 1.0,
+                    duration: Duration(milliseconds: 500),
+                    child: Icon(
+                      Icons.error_outline,
+                      color: Colors.redAccent,
+                      size: 60,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Oops!',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  AnimatedOpacity(
+                    opacity: 1.0,
+                    duration: Duration(milliseconds: 500),
+                    child: Text(
+                      message,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[800],
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blueAccent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        elevation: 5,
+                      ),
+                      child: Text(
+                        'OKE',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.white,
+                        ),
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        if (message.contains("tidak dapat diproses")) {
+                          Navigator.pop(context);
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            "/detail_pesanan_page",
+                            (Route<dynamic> route) => false,
+                          );
+                        } else {
+                          if (function != null) {
+                            function();
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   static loading(BuildContext context, String text) {
     return showDialog<void>(
