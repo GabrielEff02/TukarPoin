@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:e_commerce/screen/ocr_ktp/view/home.dart';
 import 'package:get/get.dart';
 
 import '../../checkouts/shopping_cart_screen/shopping_cart_controller/shopping_cart_controller.dart';
@@ -44,7 +43,7 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
     final compan = await LocalData.getData('compan_code');
     try {
       final response =
-          await http.get(Uri.parse('${API.BASE_URL}/get_compan.php'));
+          await http.get(Uri.parse('${API.BASE_URL}/api/poin/company'));
       if (response.statusCode == 200) {
         // Mengonversi JSON response menjadi List<Map<String, dynamic>>
         List<dynamic> jsonData = json.decode(response.body);
@@ -154,7 +153,7 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
           postTransactionDetail: items,
         );
       } else {
-        Get.to(KtpOCR(postTransaction: postTransaction, postDetail: items));
+        // Get.to(KtpOCR(postTransaction: postTransaction, postDetail: items));
       }
     }
   }

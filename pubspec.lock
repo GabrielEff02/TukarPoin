@@ -552,15 +552,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.6"
-  mnc_identifier_ocr:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: HEAD
-      resolved-ref: "5e193763ca5b5d21ae64fdfab6925e2e9776275c"
-      url: "https://github.com/GabrielEff02/mnc_identifier_ocr.git"
-    source: git
-    version: "1.0.21"
   octo_image:
     dependency: transitive
     description:

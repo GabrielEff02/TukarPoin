@@ -66,7 +66,7 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
   Future<void> getCompan() async {
     try {
       final response =
-          await http.get(Uri.parse('${API.BASE_URL}/get_compan.php'));
+          await http.get(Uri.parse('${API.BASE_URL}/api/poin/company'));
 
       if (response.statusCode == 200) {
         // Mengonversi JSON response menjadi List<Map<String, dynamic>>

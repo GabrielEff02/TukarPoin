@@ -54,24 +54,17 @@ class _LandingScreenState extends State<LandingScreen> {
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            FutureBuilder<Uint8List>(
-                              future: LocalData.getProfilePicture(
-                                  "profile_picture"),
+                            FutureBuilder<String>(
+                              future: LocalData.getData("profile_picture"),
                               builder: (context, snapshot) {
                                 if (snapshot.connectionState ==
                                     ConnectionState.waiting) {
                                   return const CircularProgressIndicator();
-                                } else if (snapshot.hasError) {
-                                  return const Icon(Icons.error);
-                                } else if (!snapshot.hasData ||
-                                    snapshot.data == null) {
-                                  return const Icon(
-                                      Icons.error); // If no image data
                                 }
-
                                 return ClipOval(
-                                  child: Image.memory(
-                                    snapshot.data!,
+                                  child: CustomImageView(
+                                    imagePath:
+                                        "${API.BASE_URL}/images/${snapshot.data}",
                                     width: 80.0,
                                     height: 80.0,
                                     fit: BoxFit.cover,
@@ -99,32 +92,6 @@ class _LandingScreenState extends State<LandingScreen> {
                                       },
                                     ),
                                     const SizedBox(height: 5),
-                                    FutureBuilder(
-                                      future: LocalData.getData('email'),
-                                      builder: (context, snapshot) {
-                                        return Text(
-                                          snapshot.data.toString(),
-                                          style: TextConstant.medium.copyWith(
-                                            color: Colors.black87,
-                                            fontSize: 13,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(height: 2),
-                                    FutureBuilder(
-                                      future: LocalData.getData('phone'),
-                                      builder: (context, snapshot) {
-                                        return Text(
-                                          snapshot.data.toString(),
-                                          style: TextConstant.medium.copyWith(
-                                            color: Colors.black87,
-                                            fontSize: 12,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(height: 2),
                                     FutureBuilder(
                                       future: LocalData.getData('phone'),
                                       builder: (context, snapshot) {
@@ -212,7 +179,7 @@ class _LandingScreenState extends State<LandingScreen> {
   Future<List<Map<String, dynamic>>> getCompan() async {
     try {
       final response =
-          await http.get(Uri.parse('${API.BASE_URL}/get_compan.php'));
+          await http.get(Uri.parse('${API.BASE_URL}/api/poin/company'));
 
       if (response.statusCode == 200) {
         // Mengonversi JSON response menjadi List<Map<String, dynamic>>

@@ -143,9 +143,123 @@ class _SpiningWheel extends State<SpiningWheel>
           SizedBox(height: 10),
           _spiningWheel(),
           SizedBox(height: 10),
-          _chanceRemaining(), // Display remaining chances
+          _chanceRemaining(),
         ],
       ),
+    );
+  }
+
+  Widget _spendingInfoButton() {
+    return Container(
+      child: IconButton(
+        onPressed: _showSpendingInfoDialog,
+        icon: const Icon(
+          Icons.info_outline,
+          color: Colors.white,
+          size: 34,
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shape: CircleBorder(),
+          elevation: 5,
+        ),
+      ),
+    );
+  }
+
+  void _showSpendingInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          backgroundColor: Colors.white, // White background
+          title: Row(
+            children: [
+              const Icon(
+                Icons.info_outline,
+                color: CupertinoColors.systemYellow, // Blue
+                size: 30,
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                "Info Kesempatan Undi",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: CupertinoColors.systemYellow, // Blue
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color.fromARGB(255, 137, 35, 155),
+                      Color.fromARGB(255, 235, 42, 203),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      "Setiap pembelanjaan \nRp 500.000",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const Text(
+                      "mendapat 1x kesempatan undi point!",
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF4CAF50), // Green
+                            Color(0xFF66BB6A), // Light Green
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        "🎯 Belanja lebih banyak = Lebih banyak kesempatan!",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
@@ -207,7 +321,7 @@ class _SpiningWheel extends State<SpiningWheel>
     return Align(
       alignment: Alignment.topCenter,
       child: Container(
-        margin: const EdgeInsets.only(top: 70),
+        margin: const EdgeInsets.only(left: 20, top: 50, right: 20),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -224,12 +338,18 @@ class _SpiningWheel extends State<SpiningWheel>
             end: Alignment.topRight,
           ),
         ),
-        child: const Text(
-          "Wheel Undian",
-          style: TextStyle(
-            fontSize: 40,
-            color: CupertinoColors.systemYellow,
-          ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              "Wheel Undian",
+              style: TextStyle(
+                fontSize: 34,
+                color: CupertinoColors.systemYellow,
+              ),
+            ),
+            _spendingInfoButton(),
+          ],
         ),
       ),
     );
@@ -306,16 +426,15 @@ class _SpiningWheel extends State<SpiningWheel>
     try {
       final username =
           await LocalData.getData('user'); // Replace with actual user ID
-      int points = earnedValue; // Calculate points to send to the server
-      // Define the URL for the PHP script
-      final String url = '${API.BASE_URL}'; // Replace with your actual URL
+      int points = earnedValue;
 
       // Send data to the server
       final response = await API.basePost(
-          '/earn_point.php',
+          '/api/poin/earn-point',
           {
             'username': username,
             'points': points,
+            'deskripsi': 'Anda Mendapatkan $points Point dari Spining Wheel',
           },
           {'Content-Type': 'application/json'},
           true,

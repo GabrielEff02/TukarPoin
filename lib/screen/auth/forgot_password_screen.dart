@@ -46,7 +46,7 @@ class ForgotPasswordScreen extends StatelessWidget {
               ),
               SizedBox(height: 30),
               Text(
-                'Jangan khawatir, Silahkan masukkan Nomor Telephone yang terhubung dengan akun anda',
+                'Jangan khawatir, Silahkan masukkan Email yang terhubung dengan akun anda',
                 style: TextConstant.regular
                     .copyWith(fontSize: 14, color: Colors.black87),
               ),
@@ -60,17 +60,11 @@ class ForgotPasswordScreen extends StatelessWidget {
                         margin: EdgeInsets.symmetric(horizontal: 20),
                         height: 40,
                         child: TextField(
-                          controller: logincontroller.edtPhone,
+                          controller: logincontroller.edtEmail,
                           maxLength: 25,
-                          keyboardType: TextInputType.phone,
-                          inputFormatters: [
-                            LengthLimitingTextInputFormatter(13),
-                            FilteringTextInputFormatter.deny(
-                                RegExp('[\\-|\\,|\\.|\\#|\\*]')),
-                            FilteringTextInputFormatter.digitsOnly
-                          ],
+                          keyboardType: TextInputType.emailAddress,
                           decoration: DecorationConstant.inputDecor().copyWith(
-                              hintText: "Masukkan Nomor Telephone anda",
+                              hintText: "Masukkan Email anda",
                               counterText: '',
                               contentPadding: EdgeInsets.only(top: 0)),
                         ),
@@ -83,20 +77,28 @@ class ForgotPasswordScreen extends StatelessWidget {
               ButtonGreenWidget(
                 text: 'Submit',
                 onClick: () {
-                  LocalData.saveData('phone', logincontroller.edtPhone.text);
-                  logincontroller.sendOtpSMS(
-                    context: context,
-                    callback: (result, error) {
-                      if (result != null && result['error'] != true) {
-                        Get.to(SecurityScreen(
-                          forget: true,
-                        ));
-                      } else {
-                        LocalData.removeAllPreference();
-                        DialogConstant.alertError(result['message']);
-                      }
-                    },
-                  );
+                  LocalData.saveData('email', logincontroller.edtEmail.text);
+                  logincontroller.checkEmail(
+                      context: context,
+                      callback: (result, error) {
+                        if (result['error']) {
+                          DialogConstant.alertError(result['message']);
+                        } else {
+                          logincontroller.sendOtpSMS(
+                            context: context,
+                            callback: (result, error) {
+                              if (result != null && result['error'] != true) {
+                                Get.to(SecurityScreen(
+                                  forget: true,
+                                ));
+                              } else {
+                                LocalData.removeAllPreference();
+                                DialogConstant.alertError(result['message']);
+                              }
+                            },
+                          );
+                        }
+                      });
                 },
               ),
             ],

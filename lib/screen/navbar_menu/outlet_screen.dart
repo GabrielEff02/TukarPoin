@@ -10,7 +10,7 @@ class OutletScreen extends StatefulWidget {
 
 class _OutletScreenState extends State<OutletScreen>
     with TickerProviderStateMixin {
-  final String apiUrl = '${API.BASE_URL}/get_compan.php';
+  final String apiUrl = '${API.BASE_URL}/api/poin/company';
   late AnimationController _fadeController;
   late AnimationController _slideController;
   late Animation<double> _fadeAnimation;

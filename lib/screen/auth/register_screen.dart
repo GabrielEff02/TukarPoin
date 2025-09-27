@@ -53,6 +53,10 @@ class _LoginScreenState extends State<RegisterScreen> {
               SizedBox(height: 20),
 
               // Email Field
+              buildTextField('Nama', registercontroller.edtNama, 50,
+                  keyboardType: TextInputType.name,
+                  icon: Icon(Icons.person, color: Colors.blue)),
+              SizedBox(height: 20),
               buildTextField('Email', registercontroller.edtEmail, 50,
                   keyboardType: TextInputType.emailAddress,
                   icon: Icon(Icons.email, color: Colors.blue)),
@@ -70,7 +74,7 @@ class _LoginScreenState extends State<RegisterScreen> {
               SizedBox(height: 20),
 
               // Password Field
-              buildTextField('Kata Sandi', registercontroller.edtPass, 6,
+              buildTextField('Kata Sandi', registercontroller.edtPass, 8,
                   obscureText: true,
                   icon: Icon(Icons.lock, color: Colors.orange), check: () {
                 String password = registercontroller.edtPass.text;
@@ -78,19 +82,26 @@ class _LoginScreenState extends State<RegisterScreen> {
                   setState(() {
                     passwordCheck = 'Password tidak boleh kosong!';
                   });
-                } else if (password.length < 6) {
+                } else if (password.length < 8) {
                   setState(() {
-                    passwordCheck = 'Password harus minimal 6 karakter';
-                    if (!RegExp(r'\d').hasMatch(password)) {
-                      passwordCheck += ' & mengandung setidaknya 1 angka';
+                    passwordCheck = 'Password harus minimal 8 karakter';
+                    if (!RegExp(r'[A-Za-z]').hasMatch(password)) {
+                      passwordCheck += ' & mengandung huruf';
                     }
-                    passwordCheck += '!!!';
+                    if (!RegExp(r'\d').hasMatch(password)) {
+                      passwordCheck += ' & mengandung angka';
+                    }
+                    if (!RegExp(r'[@$!%*?&]').hasMatch(password)) {
+                      passwordCheck += ' & mengandung simbol (@\$!%*?&)';
+                    }
+                    passwordCheck += '!';
                   });
-                } else if (!RegExp(r'^(?=.*\d)[A-Za-z\d]{6,}$')
+                } else if (!RegExp(
+                        r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
                     .hasMatch(password)) {
                   setState(() {
                     passwordCheck =
-                        'Password harus mengandung setidaknya 1 angka!';
+                        'Password harus mengandung huruf, angka, dan simbol (@\$!%*?&)!';
                   });
                 } else {
                   setState(() {
@@ -105,7 +116,7 @@ class _LoginScreenState extends State<RegisterScreen> {
               SizedBox(height: 20),
               // Confirm Password Field
               buildTextField(
-                  'Konfirmasi Kata Sandi', registercontroller.edtConfirmPass, 6,
+                  'Konfirmasi Kata Sandi', registercontroller.edtConfirmPass, 8,
                   icon: Icon(Icons.lock_outline, color: Colors.green),
                   obscureText: true, check: () {
                 String password = registercontroller.edtPass.text;
@@ -160,9 +171,9 @@ class _LoginScreenState extends State<RegisterScreen> {
                     DialogConstant.alertError('Kata Sandi tidak boleh kosong');
                     return;
                   }
-                  if (password.length < 6) {
+                  if (password.length < 8) {
                     DialogConstant.alertError(
-                        'Kata Sandi harus minimal 6 karakter');
+                        'Kata Sandi harus minimal 8 karakter');
                     return;
                   }
 

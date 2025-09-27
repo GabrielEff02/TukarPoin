@@ -104,8 +104,9 @@ class _ItemScreenState extends State<ItemScreen> {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(30),
-                      child: Image.network(
-                        '${API.BASE_URL}/images/hadiah_stiker/${widget.data['image_url']}',
+                      child: CustomImageView(
+                        imagePath:
+                            '${API.BASE_URL}/images/hadiah_stiker/${widget.data['image_url']}',
                         height: 250,
                         fit: BoxFit.cover,
                       ),
@@ -290,7 +291,7 @@ class _ItemScreenState extends State<ItemScreen> {
   Future<List<Map<String, dynamic>>> getStockDetail() async {
     try {
       final response = await http.get(Uri.parse(
-          '${API.BASE_URL}/get_stockDetail.php?kode=${widget.data['kode']}'));
+          '${API.BASE_URL}/api/poin/stock-detail?kode=${widget.data['kode']}'));
 
       if (response.statusCode == 200) {
         // Mengonversi JSON response menjadi List<Map<String, dynamic>>

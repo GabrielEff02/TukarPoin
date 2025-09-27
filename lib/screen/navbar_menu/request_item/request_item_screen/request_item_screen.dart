@@ -80,7 +80,7 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
       header['Content-Type'] = 'application/json';
       DialogConstant.loading(context, 'Loading...');
       Future.delayed(Duration(seconds: 2), () {
-        API.basePost('/api/toko/request_item', data, header, true,
+        API.basePost('/api/poin/request-item', data, header, true,
             (result, error) {
           Get.back();
           if (error != null) {

@@ -21,21 +21,18 @@ class CheckoutMainScreen extends StatefulWidget {
 class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
   static List<dynamic> productData = [];
   List<Map<String, dynamic>> companyCode = [];
-  String selectedCompanyCode = 'semua';
+  String selectedCompanyCode = 'all';
   TextEditingController searchController = TextEditingController();
+  String selectedSortOption = 'price_desc';
+  final List<Map<String, String>> sortOptions = [
+    {'value': 'name_asc', 'label': 'Nama A-Z'},
+    {'value': 'name_desc', 'label': 'Nama Z-A'},
+    {'value': 'price_asc', 'label': 'Point Terendah'},
+    {'value': 'price_desc', 'label': 'Point Tertinggi'},
+    {'value': 'quantity_asc', 'label': 'Stok Terendah'},
+    {'value': 'quantity_desc', 'label': 'Stok Tertinggi'},
+  ];
 
-  // void filterProducts(String query) {
-  //   final result = productData.where((product) {
-  //     final name = product['nama'].toString().toLowerCase();
-  //     final desc = product['product_description'].toString().toLowerCase();
-  //     final searchLower = query.toLowerCase();
-  //     return name.contains(searchLower) || desc.contains(searchLower);
-  //   }).toList();
-
-  //   setState(() {
-  //     filteredProducts = result;
-  //   });
-  // }
   @override
   void initState() {
     super.initState();
@@ -55,14 +52,14 @@ class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
   Future<void> getCompan() async {
     try {
       final response =
-          await http.get(Uri.parse('${API.BASE_URL}/get_compan.php'));
+          await http.get(Uri.parse('${API.BASE_URL}/api/poin/company'));
 
       if (response.statusCode == 200) {
         // Mengonversi JSON response menjadi List<Map<String, dynamic>>
         List<dynamic> jsonData = json.decode(response.body);
         setState(() {
           companyCode = [
-            {'compan_code': 'semua', 'name': 'Semua'}
+            {'compan_code': 'all', 'name': 'Pilih Cabang'}
           ];
           companyCode.addAll(jsonData.map((outlet) {
             return {
@@ -169,23 +166,97 @@ class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
               ),
             ),
           ),
+          SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
+              children: [
+                Icon(Icons.sort, color: Colors.grey[700]),
+                SizedBox(width: 8),
+                Text(
+                  'Urutkan:',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[700],
+                  ),
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: Colors.grey[300]!),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: selectedSortOption,
+                        isExpanded: true,
+                        items: sortOptions.map((option) {
+                          return DropdownMenuItem<String>(
+                            value: option['value'],
+                            child: Text(
+                              option['label']!,
+                              style: TextStyle(fontSize: 14),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          setState(() {
+                            selectedSortOption = newValue!;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 8),
           Expanded(
             child: ListView(
-              children: productRow(searchController.text == ''
-                  ? productData
-                  : productData.where((product) {
-                      final name = product['nama'].toString().toLowerCase();
-                      final desc =
-                          product['deskripsi'].toString().toLowerCase();
-                      final searchLower = searchController.text.toLowerCase();
-                      return name.contains(searchLower) ||
-                          desc.contains(searchLower);
-                    }).toList()),
+              children: productRow(getSortedAndFilteredProducts()),
             ),
           ),
         ],
       ),
     );
+  }
+
+  List<dynamic> getSortedAndFilteredProducts() {
+    List<dynamic> filteredData = searchController.text == ''
+        ? productData
+        : productData.where((product) {
+            final name = product['nama'].toString().toLowerCase();
+            final desc = product['deskripsi'].toString().toLowerCase();
+            final searchLower = searchController.text.toLowerCase();
+            return name.contains(searchLower) || desc.contains(searchLower);
+          }).toList();
+
+    // Apply sorting
+    filteredData.sort((a, b) {
+      switch (selectedSortOption) {
+        case 'name_asc':
+          return a['nama'].toString().compareTo(b['nama'].toString());
+        case 'name_desc':
+          return b['nama'].toString().compareTo(a['nama'].toString());
+        case 'price_asc':
+          return (a['price'] ?? 0).compareTo(b['price'] ?? 0);
+        case 'price_desc':
+          return (b['price'] ?? 0).compareTo(a['price'] ?? 0);
+        case 'quantity_asc':
+          return (a['quantity'] ?? 0).compareTo(b['quantity'] ?? 0);
+        case 'quantity_desc':
+          return (b['quantity'] ?? 0).compareTo(a['quantity'] ?? 0);
+        default:
+          return 0;
+      }
+    });
+
+    return filteredData;
   }
 
   List<Widget> productRow(List productData) {

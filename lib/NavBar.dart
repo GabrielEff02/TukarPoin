@@ -7,7 +7,6 @@ import 'package:e_commerce/screen/navbar_menu/history_screen.dart';
 import 'package:e_commerce/screen/navbar_menu/others_screen.dart';
 import 'package:e_commerce/screen/navbar_menu/contact_screen.dart';
 import 'package:e_commerce/screen/navbar_menu/outlet_screen.dart';
-import 'package:e_commerce/screen/ocr_ktp/view/home.dart';
 import 'package:e_commerce/screen/srg/security_screen.dart';
 import 'package:get/get.dart';
 
@@ -89,11 +88,11 @@ class NavBar extends StatelessWidget {
             title: Text('Edit Profile'),
             onTap: () => Get.to(() => EditProfileScreen()),
           ),
-          ListTile(
-            leading: Icon(Icons.person_add),
-            title: Text('Complete your details'),
-            onTap: () => Get.to(() => KtpOCR()),
-          ),
+          // ListTile(
+          //   leading: Icon(Icons.person_add),
+          //   title: Text('Complete your details'),
+          //   onTap: () => Get.to(() => KtpOCR()),
+          // ),
 
           Divider(),
           ListTile(

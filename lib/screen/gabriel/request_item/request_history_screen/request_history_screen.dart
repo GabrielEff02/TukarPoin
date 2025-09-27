@@ -23,10 +23,10 @@ class _RequestHistoryScreenState extends State<RequestHistoryScreen> {
 
   Future<List<Map<String, dynamic>>> getInitData() async {
     Completer<List<Map<String, dynamic>>> completer = Completer();
-
+    final username = await LocalData.getData('user');
     API.basePost(
-      '/get_request_item.php',
-      {'username': await LocalData.getData('user')},
+      '/api/poin/get-request-item',
+      {'username': username},
       {'Content-Type': 'application/json'},
       true,
       (result, error) {
@@ -36,6 +36,9 @@ class _RequestHistoryScreenState extends State<RequestHistoryScreen> {
           completer.complete([]);
         } else if (result['error'] != true) {
           completer.complete(List<Map<String, dynamic>>.from(result['data']));
+        } else if (result['error'] == true &&
+            result['message'] == 'No data found') {
+          completer.complete([]);
         } else {
           DialogConstant.alertError(error.toString());
           completer.completeError(error);

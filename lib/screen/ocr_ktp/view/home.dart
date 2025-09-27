@@ -346,7 +346,7 @@ class _KtpOCRState extends State<KtpOCR> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         title: const Text(
-          'OCR KTP',
+          'KTP',
           style: TextStyle(color: Colors.black),
         ),
       ),
@@ -505,7 +505,7 @@ class _KtpOCRState extends State<KtpOCR> {
     DialogConstant.loading(context, 'Loading...');
     listController['username'] = await LocalData.getData('user');
     API.basePost(
-      "/input_ktp.php",
+      "/api/poin/input-ktp",
       listController,
       {'Content-Type': 'application/json'},
       true,

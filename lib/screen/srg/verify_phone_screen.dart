@@ -2,13 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:pin_code_fields/pin_code_fields.dart';
-import '../../../constant/decoration_constant.dart';
 import '../../../constant/dialog_constant.dart';
 import '../../../constant/image_constant.dart';
 import '../../../constant/text_constant.dart';
 import '../../../controller/auth_controller.dart';
 import '../../../screen/home/landing_home.dart';
-import '../../../screen/ocr_ktp/view/home.dart';
 import '../../../utils/local_data.dart';
 import '../../../widget/material/button_green_widget.dart';
 
@@ -46,10 +44,13 @@ class VerifyPhoneScreen extends StatelessWidget {
               ),
               SizedBox(height: 30),
               FutureBuilder(
-                future: LocalData.getData('phone'),
+                future: LocalData.getData('email'),
                 builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
                   return Text(
-                    'Silahkan masukkan kode verifikasi yang telah dikirim ke Whatsapp Anda (${snapshot.data!.replaceAll(RegExp(r'\d(?=\d{4})'), '*')})',
+                    'Silahkan masukkan kode verifikasi yang telah dikirim ke Email Anda (${snapshot.data!.substring(0, 5).padRight(snapshot.data!.length, '*')})',
                     style: TextConstant.regular.copyWith(
                       fontSize: 14,
                       color: Colors.black87,

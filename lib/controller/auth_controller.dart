@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import '../api/api.dart';
 import '../constant/dialog_constant.dart';
 import '../utils/local_data.dart';
+import 'dart:async';
 
 class AuthController extends GetxController {
   RxBool openPassLogin = true.obs;
@@ -58,65 +59,66 @@ class AuthController extends GetxController {
         ? 'dawbhdbawjbdawjbdhwbawjbawjbdja'
         : NotificationApi.fCMToken;
 
-    bool isCompleted =
-        false; // Flag untuk melacak apakah respons sudah diterima
-    Future.delayed(Duration(seconds: 20), () {
+    bool isCompleted = false;
+
+    // Timeout timer - akan dipanggil setelah 20 detik
+    Timer timeoutTimer = Timer(Duration(seconds: 20), () {
       if (!isCompleted) {
         isCompleted = true;
-        Get.back();
-        callback!(null, 'Request timed out');
+        Get.back(); // Close loading dialog
+        callback!(
+            null, 'Request timed out. Please check your internet connection.');
       }
     });
-    API.basePost('/login.php', post, header, true, (result, error) {
+
+    API.basePost('/api/poin/login', post, header, true, (result, error) {
       if (!isCompleted) {
         isCompleted = true;
+        timeoutTimer
+            .cancel(); // Cancel timeout timer karena response sudah diterima
 
+        // Close loading dialog immediately
+        Get.back();
         if (result != null) {
-          Future.delayed(Duration(seconds: 3), () {
-            if (result['error'] == true) {
-              Get.back();
+          if (result['error'] == true) {
+            callback!(null, result['message']);
 
-              callback!(null, result['message']);
-              return;
-            }
+            return;
+          }
+
+          // Proses data tanpa delay
+          try {
             List dataUser = result['data'];
             if (dataUser.length > 1) {
               LocalData.saveData('detailKTP', jsonEncode(dataUser[1]));
-              LocalData.saveData('full_name', dataUser[1]['nama']);
             }
+            LocalData.saveData('full_name', dataUser[0]['name']);
             LocalData.saveData('user', dataUser[0]['username'] ?? "");
             LocalData.saveData('kodec', dataUser[0]['kodec'] ?? "");
-            LocalData.saveData('max_point', dataUser[0]['max_point'] ?? "");
+            LocalData.saveData(
+                'max_point', dataUser[0]['max_point'].toString());
             LocalData.saveData('loginDate', DateTime.now().toString());
             LocalData.saveData('password', post['password'] ?? "");
             LocalData.saveData('email', dataUser[0]['email'] ?? "");
             LocalData.saveData('address', dataUser[0]['default_address'] ?? "");
             LocalData.saveData('phone', dataUser[0]['phone'] ?? "");
-            LocalData.saveData('point', dataUser[0]['point'] ?? "");
-            LocalData.saveData('chance', dataUser[0]['spin_chance'] ?? "");
+            LocalData.saveData('point', dataUser[0]['point'].toString());
             LocalData.saveData(
-                'profile_picture', dataUser[0]['profile_picture'] ?? "");
-
+                'chance', dataUser[0]['spin_chance'].toString() ?? "");
+            LocalData.saveData(
+                'profile_picture', dataUser[0]['profile_path'] ?? "");
             LocalData.removeData('compan_code');
 
-            if (dataUser[0]['email'].contains('@')) {
-              List<String> maskEmail = dataUser[0]['email'].split('@');
-              if (maskEmail[0].length > 5) {
-                maskEmail[0] =
-                    maskEmail[0].substring(0, maskEmail[0].length - 5) +
-                        "*****";
-              } else {
-                maskEmail[0] = "*****";
-              }
-              LocalData.saveData(
-                  'maskEmail', maskEmail[0] + '@' + maskEmail[1]);
-            } else {
-              LocalData.saveData('maskEmail', "*****@****");
-              print('Invalid email format');
-            }
-
             callback!(result, null);
-          });
+          } catch (e) {
+            print('Error processing login data: $e');
+            callback!(null, 'Gagal untuk Memproses Data');
+          }
+        } else if (error != null) {
+          print('Login error: $error');
+          callback!(null, 'Mohon Maaf Ada Kesalahan');
+        } else {
+          callback!(null, 'Unknown error occurred');
         }
       }
     });
@@ -124,16 +126,19 @@ class AuthController extends GetxController {
 
   validationRegister(
       {BuildContext? context, void callback(result, exception)?}) {
-    if (edtPhone.text.isEmpty) {
+    if (edtNama.text.isEmpty) {
+      DialogConstant.alertError('Nama tidak boleh kosong!');
+    } else if (edtPhone.text.isEmpty) {
       DialogConstant.alertError('Nomor Telephone tidak boleh kosong!');
     } else if (edtEmail.text.isEmpty) {
       DialogConstant.alertError('Email tidak boleh kosong!');
     } else if (edtPass.text.isEmpty) {
       DialogConstant.alertError('Password tidak boleh kosong!');
-    } else if (!RegExp(r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{6,}$')
+    } else if (!RegExp(
+            r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
         .hasMatch(edtPass.text)) {
       DialogConstant.alertError(
-          'Password harus minimal 6 karakter dan mengandung huruf serta angka!');
+          'Password harus minimal 8 karakter dan mengandung huruf, angka, serta simbol!');
     } else if (edtConfirmPass.text.isEmpty) {
       DialogConstant.alertError('Konfirmasi Password tidak boleh kosong!');
     } else if (edtPass.text != edtConfirmPass.text) {
@@ -154,13 +159,14 @@ class AuthController extends GetxController {
     var header = new Map<String, String>();
 
     header['Content-Type'] = 'application/json';
+    post['nama'] = edtNama.text;
     post['email'] = edtEmail.text;
     post['password'] = edtPass.text;
     post['phone'] = edtPhone.text;
 
     DialogConstant.loading(context!, 'Loading...');
 
-    API.basePost('/register.php', post, header, true, (result, error) {
+    API.basePost('/api/poin/register', post, header, true, (result, error) {
       Get.back();
       if (error != null) {
         callback!(null, error);
@@ -193,7 +199,9 @@ class AuthController extends GetxController {
 
     DialogConstant.loading(context!, 'Mengirim kode Verifikasi...');
 
-    API.basePost('/auth-sms.php', post, header, true, (result, error) {
+    API.basePost('/api/poin/send-auth', post, header, true, (result, error) {
+      print(result);
+      print(error);
       Get.back();
       if (error != null) {
         callback!(null, error);
@@ -215,7 +223,25 @@ class AuthController extends GetxController {
 
     DialogConstant.loading(context!, 'Check Verification...');
 
-    API.basePost('/get-verify-sms.php', post, header, true, (result, error) {
+    API.basePost('/api/poin/get-verify', post, header, true, (result, error) {
+      Get.back();
+      if (error != null) {
+        callback!(null, error);
+      }
+      if (result != null) {
+        callback!(result, null);
+      }
+    });
+  }
+
+  checkEmail({BuildContext? context, void callback(result, exception)?}) async {
+    var post = new Map<String, dynamic>();
+    var header = new Map<String, String>();
+
+    header['Content-Type'] = 'application/json';
+    post['emailx'] = await LocalData.getData('email');
+    DialogConstant.loading(context!, 'Sending OTP...');
+    API.basePost('/api/poin/check-email', post, header, true, (result, error) {
       Get.back();
       if (error != null) {
         callback!(null, error);
@@ -231,11 +257,11 @@ class AuthController extends GetxController {
     var header = new Map<String, String>();
 
     header['Content-Type'] = 'application/json';
-    post['phonex'] = await LocalData.getData('phone');
+    post['emailx'] = await LocalData.getData('email');
 
     DialogConstant.loading(context!, 'Sending OTP...');
 
-    API.basePost('/auth-sms.php', post, header, true, (result, error) {
+    API.basePost('/api/poin/send-auth', post, header, true, (result, error) {
       Get.back();
       if (error != null) {
         callback!(null, error);
@@ -267,14 +293,14 @@ class AuthController extends GetxController {
     if (await LocalData.containsKey('user')) {
       post['userx'] = await LocalData.getData('user');
     } else {
-      post['phonex'] = await LocalData.getData('phone');
+      post['emailx'] = await LocalData.getData('email');
     }
     post['newpass'] = changePass.text;
     post['codex'] = otpCode.text;
     print(post);
     DialogConstant.loading(context!, 'Verifying OTP..');
 
-    API.basePost('/get-verify-sms.php', post, header, true, (result, error) {
+    API.basePost('/api/poin/get-verify', post, header, true, (result, error) {
       Get.back();
       if (error != null) {
         callback!(null, error);

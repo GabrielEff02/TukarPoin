@@ -26,15 +26,15 @@ class ShoppingCartController {
         'kode': transaction['kode'],
         'quantity': quantity,
         'total_price': price * quantity,
-        'compan_code': companCode
       };
     }).toList();
 
     // Gabungkan semua data ke postTransaction
     postTransaction!['username'] = username;
     postTransaction['items'] = items;
+    postTransaction['compan_code'] = companCode;
 
-    API.basePost('/update_transaction.php', postTransaction, header, true,
+    API.basePost('/api/poin/update-transactions', postTransaction, header, true,
         (result, error) async {
       if (error != null) {
         callback?.call(null, error);
@@ -52,7 +52,7 @@ class ShoppingCartController {
 
         // Navigasi dan callback
         Get.back();
-        Get.to(SecondSplash());
+        Get.offAll(SecondSplash());
         callback?.call(result, null);
       }
     });

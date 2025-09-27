@@ -1,5 +1,4 @@
 import 'package:e_commerce/screen/home/landing_home.dart';
-import 'package:e_commerce/screen/ocr_ktp/view/home.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -53,6 +52,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 callback: (result, error) async {
                   if (result != null && result['error'] != true) {
                     if (result['data'][0]['register_confirmation'] == '0') {
+                      LocalData.saveData('email', result['data'][0]['email']);
                       Get.to(() => VerifyPhoneScreen());
                     } else {
                       Get.offAll(LandingHome());
@@ -209,6 +209,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   if (result['data'][0]
                                           ['register_confirmation'] ==
                                       '0') {
+                                    LocalData.saveData(
+                                        'email', result['data'][0]['email']);
                                     Get.to(() => VerifyPhoneScreen());
                                   } else {
                                     Get.offAll(SplashScreen());

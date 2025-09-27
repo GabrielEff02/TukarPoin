@@ -78,7 +78,8 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
       header['Content-Type'] = 'application/json';
       DialogConstant.loading(context, 'Loading...');
       Future.delayed(Duration(seconds: 2), () {
-        API.basePost('/request_item.php', data, header, true, (result, error) {
+        API.basePost('/api/poin/request-item', data, header, true,
+            (result, error) {
           Get.back();
           if (error != null) {
             DialogConstant.alertError('Request Item Failed');

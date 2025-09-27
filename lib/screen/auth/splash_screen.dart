@@ -1,5 +1,3 @@
-import 'package:e_commerce/api/api.dart';
-
 import '../../screen/gabriel/core/app_export.dart';
 import '../../screen/auth/second_splash.dart';
 import 'dart:math';

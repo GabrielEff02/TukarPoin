@@ -1,4 +1,5 @@
 import 'package:e_commerce/constant/dialog_constant.dart';
+import 'package:e_commerce/constant/text_constant.dart';
 
 import '../../../screen/gabriel/core/app_export.dart';
 import 'package:get/get.dart';
@@ -18,8 +19,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   // Add state variables here if needed
-  String userName = "";
-  String userEmail = "";
+  String name = "";
 
   @override
   void initState() {
@@ -34,16 +34,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // For example, load from local storage or API
     try {
       DialogConstant.loading(context, "Loading...");
-      final username = await LocalData.getData('user');
-      final email = await LocalData.getData('email');
-      if (username.isNotEmpty) {
+      final name = await LocalData.getData('full_name');
+      if (name.isNotEmpty) {
         setState(() {
-          userName = username;
-        });
-      }
-      if (email.isNotEmpty) {
-        setState(() {
-          userEmail = email;
+          this.name = name;
         });
       }
 
@@ -94,35 +88,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 child: Column(
                   children: [
                     // Profile Avatar
-                    Container(
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.3),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                          ),
-                        ],
-                      ),
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.white,
-                        child: CircleAvatar(
-                          radius: 45,
-                          backgroundColor: Colors.grey[300],
-                          child: Icon(
-                            Icons.person,
-                            size: 50,
-                            color: Colors.grey[600],
-                          ),
-                        ),
+                    CircleAvatar(
+                      radius: 50,
+                      backgroundColor: Colors.transparent,
+                      child: FutureBuilder(
+                        future: LocalData.getData('profile_picture'),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const CircularProgressIndicator();
+                          }
+
+                          return ClipOval(
+                            child: CustomImageView(
+                              width: 120.0,
+                              height: 120.0,
+                              fit: BoxFit.cover,
+                              imagePath:
+                                  "${API.BASE_URL}/images/${snapshot.data}",
+                            ),
+                          );
+                        },
                       ),
                     ),
                     const SizedBox(height: 15),
                     // User Name
                     Text(
-                      userName,
+                      name,
                       style: GoogleFonts.poppins(
                         color: Colors.white,
                         fontSize: 24,
@@ -130,14 +122,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 5),
-                    // User Email
-                    Text(
-                      userEmail,
-                      style: GoogleFonts.poppins(
-                        color: Colors.white70,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w400,
-                      ),
+                    FutureBuilder(
+                      future: LocalData.getData('phone'),
+                      builder: (context, snapshot) {
+                        return Text(
+                          "{Nomor Member}",
+                          style: GoogleFonts.poppins(
+                            color: Colors.white,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
