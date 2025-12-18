@@ -30,10 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserData() async {
-    // Add your data loading logic here
-    // For example, load from local storage or API
     try {
-      DialogConstant.loading(context, "Loading...");
       final name = await LocalData.getData('full_name');
       if (name.isNotEmpty) {
         setState(() {
@@ -41,12 +38,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
       }
 
-      await Future.delayed(
-          const Duration(milliseconds: 500)); // Simulate loading
+      await Future.delayed(const Duration(milliseconds: 500));
     } catch (e) {
       print('Error loading user data: $e');
     } finally {
-      Get.back();
+      Navigator.of(context).pop();
     }
   }
 
@@ -123,10 +119,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 5),
                     FutureBuilder(
-                      future: LocalData.getData('phone'),
+                      future: LocalData.getData('barcode'),
                       builder: (context, snapshot) {
                         return Text(
-                          "{Nomor Member}",
+                          snapshot.data ?? "",
                           style: GoogleFonts.poppins(
                             color: Colors.white,
                             fontSize: 20,

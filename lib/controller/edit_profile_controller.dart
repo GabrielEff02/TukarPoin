@@ -48,8 +48,7 @@ class EditProfileController extends GetxController {
 
       if (response.statusCode == 200) {
         var result = json.decode(responseData);
-        LocalData.saveData(
-            'profile_picture', 'profile_picture/${result['profile_picture']}');
+        LocalData.saveData('profile_picture', '${result['profile_picture']}');
         callback(result, null);
       } else {
         var error = json.decode(responseData);

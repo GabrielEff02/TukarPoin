@@ -56,11 +56,13 @@ class CarouselWidget extends StatefulWidget {
   State<CarouselWidget> createState() => _CarouselWidgetState();
 }
 
-class _CarouselWidgetState extends State<CarouselWidget> {
+class _CarouselWidgetState extends State<CarouselWidget>
+    with AutomaticKeepAliveClientMixin {
   final LandingScreenController controller = Get.put(LandingScreenController());
   List<String> carouselImages = [];
   List<String> carouselTitle = [];
-
+  @override
+  bool get wantKeepAlive => true;
   @override
   void dispose() {
     controller.dispose();

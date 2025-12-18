@@ -1,3 +1,4 @@
+import 'package:e_commerce/screen/kosongan.dart';
 import 'package:get/get.dart';
 import 'screen/auth/login_screen.dart';
 import 'screen/gabriel/core/app_export.dart';
@@ -12,10 +13,10 @@ import 'package:flutter/services.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   // await Firebase.initializeApp();
   // await NotificationApi().initNotifications();
   runApp(MyApp());
+  // runApp(Kosongan());
 }
 
 class MyApp extends StatelessWidget {
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
     ]);
     return Sizer(builder: (context, orientation, deviceType) {
       return GetMaterialApp(
-          title: 'Foxie',
+          title: 'Tiara Dewata Group Member',
           debugShowCheckedModeBanner: false,
           theme: ThemeData(
             primaryColor: Colors.blue,

@@ -18,33 +18,16 @@ class ShowItemsScreen extends StatefulWidget {
 class _ShowItemsScreenState extends State<ShowItemsScreen> {
   List<dynamic> displayedItems = [];
   List<dynamic> selectedItems = [];
-  List<Map<String, dynamic>> companyCode = [];
   late var productData;
   int totalPrice = 0;
   bool isLoading = false;
   String name = '';
   int point = 0;
-  String selectedCompanyCode = 'semua';
-  bool checkCompan = false;
   bool checkProduct = false;
   String truncateText(String text, {int maxLength = 15}) {
     return text.length > maxLength
         ? "${text.substring(0, maxLength)}..."
         : text;
-  }
-
-  Future<void> checkingCompan() async {
-    DialogConstant.loading(context, 'Loading...');
-
-    if (await LocalData.containsKey('compan_code')) {
-      final companyCode = await LocalData.getData('compan_code');
-      setState(() {
-        checkCompan = true;
-        selectedCompanyCode = companyCode;
-      });
-      await _sortInitialData();
-    }
-    Get.back();
   }
 
   @override
@@ -57,37 +40,8 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
 
   Future<void> loadInitialData() async {
     DialogConstant.loading(context, 'Loading...');
-    await getCompan();
     await getFullName();
-    await checkingCompan();
     Get.back();
-  }
-
-  Future<void> getCompan() async {
-    try {
-      final response =
-          await http.get(Uri.parse('${API.BASE_URL}/api/poin/company'));
-
-      if (response.statusCode == 200) {
-        // Mengonversi JSON response menjadi List<Map<String, dynamic>>
-        List<dynamic> jsonData = json.decode(response.body);
-        setState(() {
-          companyCode = [
-            {'compan_code': 'semua', 'name': 'Semua'}
-          ];
-          companyCode.addAll(jsonData.map((outlet) {
-            return {
-              'compan_code': outlet['compan_code'],
-              'name': outlet['name']
-            };
-          }).toList());
-        });
-      } else {
-        throw Exception('Failed to load data');
-      }
-    } catch (e) {
-      throw Exception('Failed to load data: $e');
-    }
   }
 
   Future<void> getFullName() async {
@@ -98,6 +52,7 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
       name = names;
       point = int.parse(points);
     });
+    await _sortInitialData();
   }
 
   Future<void> _sortInitialData() async {
@@ -106,7 +61,7 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
       final datas = jsonDecode(await LocalData.getData('cart'));
       final compan = await LocalData.getData('compan_code');
       final listData = await CheckoutsData.getInitData(compan);
-
+      print(datas);
       productData = listData['productData'];
       if (datas.keys.contains(compan)) {
         List<int> uniquePriorityOrder = [];
@@ -181,75 +136,45 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
     return Scaffold(
       backgroundColor: appTheme.whiteA700,
       appBar: WidgetHelper.appbarWidget(
-          () => Get.offAll(LandingHome()),
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text("Hello $name!!!", style: CustomTextStyle.titleSmallBlack900),
-            Text(
-              'Points: ${currencyFormatter.format(point)}',
-              style: CustomTextStyle.titleSmallBlack900,
-            )
-          ]),
-          actions: [
-            DropdownButton<String>(
-              hint: Text("Pilih Perusahaan"),
-              value: selectedCompanyCode,
-              items: companyCode.map((company) {
-                return DropdownMenuItem<String>(
-                  value: company["compan_code"], // Menyimpan company_code
-                  child: Text(
-                    truncateText(company["name"]!),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                    softWrap: false,
-                  ),
-                );
-              }).toList(),
-              onChanged: (String? newValue) {
-                setState(() {
-                  selectedCompanyCode = newValue!;
-                });
-                LocalData.saveData('compan_code', selectedCompanyCode);
-                checkingCompan();
-              },
-            )
-          ]),
-      body: checkCompan
-          ? checkProduct
-              ? Column(
-                  children: [
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: displayedItems.length + (isLoading ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (index == displayedItems.length) {
-                            return Padding(
-                              padding: EdgeInsets.all(10),
-                              child: Center(child: CircularProgressIndicator()),
-                            );
-                          }
-                          var widgetData = displayedItems[index];
+        () => Get.back(),
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text("Hello $name!!!", style: CustomTextStyle.titleSmallBlack900),
+          Text(
+            'Points: ${currencyFormatter.format(point)}',
+            style: CustomTextStyle.titleSmallBlack900,
+          )
+        ]),
+      ),
+      body: checkProduct
+          ? Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: displayedItems.length + (isLoading ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == displayedItems.length) {
+                        return Padding(
+                          padding: EdgeInsets.all(10),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      var widgetData = displayedItems[index];
 
-                          return List1ItemWidget(
-                            key: ValueKey(widgetData['kode']),
-                            data: widgetData,
-                            color: color = !color,
-                            onQuantityChanged: _onQuantityChanged,
-                          );
-                        },
-                      ),
-                    ),
-                    if (totalPrice > 0)
-                      Container(
-                          color: Colors.transparent, height: 75.adaptSize),
-                  ],
-                )
-              : Center(
-                  child: Text('Tidak ada produk yang dipilih',
-                      style: TextStyle(
-                          color: Colors.red, fontWeight: FontWeight.w900)),
-                )
+                      return List1ItemWidget(
+                        key: ValueKey(widgetData['kode']),
+                        data: widgetData,
+                        color: color = !color,
+                        onQuantityChanged: _onQuantityChanged,
+                      );
+                    },
+                  ),
+                ),
+                if (totalPrice > 0)
+                  Container(color: Colors.transparent, height: 75.adaptSize),
+              ],
+            )
           : Center(
-              child: Text('Harap memilih cabang terlebih dahulu',
+              child: Text('Tidak ada produk yang dipilih',
                   style: TextStyle(
                       color: Colors.red, fontWeight: FontWeight.w900)),
             ),

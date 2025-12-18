@@ -59,7 +59,8 @@ class _OutletScreenState extends State<OutletScreen>
             'name': outlet['name'],
             'address': outlet['address'],
             'phone': outlet['phone'],
-            'image_url': outlet['image_url']
+            'image_url': outlet['image_url'],
+            'maps': outlet['maps']
           };
         }).toList();
       } else {
@@ -512,27 +513,30 @@ class _OutletScreenState extends State<OutletScreen>
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Alamat',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
-                                  fontWeight: FontWeight.w500,
+                          child: InkWell(
+                            onTap: () => launchUrl(Uri.parse(outlet['maps'])),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Alamat',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey.shade600,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                outlet['address']!,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFF2E2E2E),
-                                  height: 1.4,
+                                const SizedBox(height: 4),
+                                Text(
+                                  outlet['address']!,
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    color: Color(0xFF2E2E2E),
+                                    height: 1.4,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                         ),
                       ],

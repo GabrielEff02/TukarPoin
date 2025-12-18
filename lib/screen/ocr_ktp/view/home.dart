@@ -453,7 +453,7 @@ class _KtpOCRState extends State<KtpOCR> {
                                 },
                               );
                             } else {
-                              DialogConstant.alertError(
+                              DialogConstant.alertError('Registrasi',
                                   'Data belum terisi dengan lengkap');
                             }
                           },
@@ -524,18 +524,11 @@ class _KtpOCRState extends State<KtpOCR> {
           widget.isCheckout
               ? Get.to(ShowItemsScreen())
               : Get.offAll(LandingHome());
-          Get.snackbar('Success', 'Profile updated successfully!',
-              colorText: Colors.white,
-              icon: const Icon(
-                Icons.check,
-                color: Colors.red,
-              ),
-              padding: const EdgeInsets.only(top: 10, bottom: 10),
-              backgroundColor: const Color.fromARGB(83, 0, 0, 0),
-              snackPosition: SnackPosition.BOTTOM);
+          DialogConstant.showSuccessAlert(
+              title: 'Success', message: 'Profil berhasil diperbarui!');
         } else {
           Navigator.pop(context);
-          DialogConstant.alertError(result['message']);
+          DialogConstant.alertError('Registrasi Gagal', result['message']);
         }
       },
     );

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:barcode/barcode.dart';
@@ -23,12 +24,40 @@ class LandingScreen extends StatefulWidget {
 }
 
 class _LandingScreenState extends State<LandingScreen> {
-  final LandingScreenController controller = Get.put(LandingScreenController());
-
-  int vipTarget = 1500;
+  LandingScreenController controller = LandingScreenController();
+  String profilePicture = '';
+  String fullName = '';
+  String noMember = '{Nomor Member}';
+  String point = '0';
+  String vip = '0';
+  bool first = true;
   Map<String, dynamic> categoryData = {};
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadUserData();
+    });
+  }
+
+  void _loadUserData() async {
+    final profile = await LocalData.getData("profile_picture");
+    final name = await LocalData.getData("full_name");
+    final myPoint = await LocalData.getData('point');
+    final myVIP = await LocalData.getData('vip');
+    final myBarcode = await LocalData.getData('barcode');
+
+    setState(() {
+      controller = Get.put(LandingScreenController());
+      profilePicture = profile;
+      fullName = name;
+      point = myPoint;
+      noMember = myBarcode;
+      vip = myVIP;
+      if (vip == '0' && int.parse(myPoint) >= 1500) {
+        LocalData.saveData('vip', '1');
+        vip = '1';
+      }
+    });
   }
 
   @override
@@ -36,142 +65,114 @@ class _LandingScreenState extends State<LandingScreen> {
     super.dispose();
   }
 
+  Future<void> _onRefresh() async {
+    _loadUserData();
+
+    HapticFeedback.lightImpact();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Stack(
-        children: <Widget>[
-          SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10.0),
-              child: Column(
-                children: [
-                  Container(
-                    margin:
-                        EdgeInsets.symmetric(vertical: 12.v, horizontal: 20.h),
-                    child: Column(
-                      children: [
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            FutureBuilder<String>(
-                              future: LocalData.getData("profile_picture"),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return const CircularProgressIndicator();
-                                }
-                                return ClipOval(
-                                  child: CustomImageView(
-                                    imagePath:
-                                        "${API.BASE_URL}/images/${snapshot.data}",
-                                    width: 80.0,
-                                    height: 80.0,
-                                    fit: BoxFit.cover,
-                                  ),
-                                );
-                              },
-                            ),
-                            Expanded(
-                              child: Container(
-                                padding: EdgeInsets.fromLTRB(15, 0, 15, 10),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    FutureBuilder(
-                                      future: LocalData.getData('full_name'),
-                                      builder: (context, snapshot) {
-                                        return Text(
-                                          snapshot.data.toString(),
-                                          style: TextConstant.medium.copyWith(
-                                            color: Colors.black87,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    const SizedBox(height: 5),
-                                    FutureBuilder(
-                                      future: LocalData.getData('phone'),
-                                      builder: (context, snapshot) {
-                                        return Text(
-                                          "{Nomor Member}",
-                                          style: TextConstant.medium.copyWith(
-                                            color: Colors.black87,
-                                            fontSize: 12,
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                  ],
+      body: RefreshIndicator(
+        onRefresh: _onRefresh,
+        backgroundColor: Colors.white,
+        color: Colors.blue,
+        strokeWidth: 2.0,
+        displacement: 40.0,
+        child: Stack(
+          children: <Widget>[
+            SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10.0),
+                child: Column(
+                  children: [
+                    Container(
+                      margin: EdgeInsets.symmetric(
+                          vertical: 12.v, horizontal: 20.h),
+                      child: Column(
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ClipOval(
+                                child: CustomImageView(
+                                  imagePath:
+                                      "${API.BASE_URL}/images/${profilePicture}",
+                                  width: 80.0,
+                                  height: 80.0,
+                                  fit: BoxFit.cover,
                                 ),
                               ),
-                            )
-                          ],
-                        ),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            FutureBuilder(
-                              future: Future.wait([
-                                LocalData.getData('point'),
-                                LocalData.getData('max_point'),
-                              ]),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  return CircularProgressIndicator(); // Loading indicator
-                                } else if (snapshot.hasError) {
-                                  return Text(
-                                      "Error: ${snapshot.error}"); // Tangani error dengan aman
-                                } else if (!snapshot.hasData ||
-                                    snapshot.data == null) {
-                                  return Text("No data available");
-                                }
-
-                                var point = snapshot.data![0];
-                                var balance = snapshot.data![1];
-                                return itemMenu(
-                                    point: true, value: [point, balance]);
-                              },
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 20.v),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            GestureDetector(
-                              onTap: () => _showBarcodePopup(context, false),
-                              child: itemMenu(
-                                title: "Barcode",
-                                icon: FontAwesomeIcons.barcode,
+                              Expanded(
+                                child: Container(
+                                  padding: EdgeInsets.fromLTRB(15, 0, 15, 10),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        fullName,
+                                        style: TextConstant.medium.copyWith(
+                                          color: Colors.black87,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 5),
+                                      Text(
+                                        noMember,
+                                        style: TextConstant.medium.copyWith(
+                                          color: Colors.black87,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child:
+                                    itemMenu(point: true, value: [point, vip]),
                               ),
-                            ),
-                            GestureDetector(
-                              onTap: () => _showBarcodePopup(context, true),
-                              child: itemMenu(
-                                  title: "QR Code", icon: Icons.qr_code_2),
-                            ),
-                          ],
-                        ),
-                      ],
+                            ],
+                          ),
+                          SizedBox(height: 20.v),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              GestureDetector(
+                                onTap: () => _showBarcodePopup(context, false),
+                                child: itemMenu(
+                                  title: "Barcode",
+                                  icon: FontAwesomeIcons.barcode,
+                                ),
+                              ),
+                              GestureDetector(
+                                onTap: () => _showBarcodePopup(context, true),
+                                child: itemMenu(
+                                    title: "QR Code", icon: Icons.qr_code_2),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 20.v),
-                  CarouselWidget(),
-                  SizedBox(height: 20.v),
-                  // categoryData.isNotEmpty
-                  //     ? categoryColumn(categoryData)
-                  //     : Container(),
-
-                  SizedBox(height: 80.v)
-                ],
+                    SizedBox(height: 20.v),
+                    CarouselWidget(),
+                    SizedBox(height: 20.v),
+                    SizedBox(height: 80.v)
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -218,6 +219,8 @@ class _LandingScreenState extends State<LandingScreen> {
     );
   }
 
+  // ...existing code...
+
   Widget itemMenu(
       {String? title,
       IconData? icon,
@@ -251,138 +254,281 @@ class _LandingScreenState extends State<LandingScreen> {
               ),
             ],
           );
+
+    bool isVip = point && value != null && int.parse(value[1]) == 1;
+
     return Container(
-      margin: EdgeInsets.all(8.adaptSize),
+      margin: EdgeInsets.symmetric(vertical: 8.adaptSize),
       child: point
-          ? Banner(
-              message: (int.parse(value![1]) < vipTarget) ? 'Basic' : 'VIP',
-              textDirection: TextDirection.ltr,
-              location: BannerLocation.topStart,
-              color: (int.parse(value[1]) < vipTarget)
-                  ? Colors.blue
-                  : const Color.fromARGB(255, 255, 166, 0),
-              child: Container(
-                width: 285.h,
-                padding: EdgeInsets.all(10.adaptSize),
-                decoration: decoration,
-                margin: EdgeInsets.symmetric(horizontal: 10.h, vertical: 5.v),
-                child: Row(
-                  mainAxisAlignment: (int.parse(value[1]) < vipTarget)
-                      ? MainAxisAlignment.spaceBetween
-                      : MainAxisAlignment.spaceEvenly,
-                  children: [
-                    Column(
+          ? Container(
+              width: 285.h,
+              padding: EdgeInsets.all(15.adaptSize),
+              decoration: BoxDecoration(
+                gradient: isVip
+                    ? LinearGradient(
+                        colors: [
+                          Color(0xFFFFD700), // Gold
+                          Color(0xFFFFA500), // Orange gold
+                          Color(0xFFFFD700), // Gold
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
+                    : LinearGradient(
+                        colors: [
+                          Color(0xFF6DB9EF), // Light blue
+                          Color(0xFF87CEEB), // Sky blue
+                          Color(0xFF6DB9EF), // Light blue
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: isVip
+                        ? Color(0xFFFFD700).withOpacity(0.3)
+                        : Color(0xFF6DB9EF).withOpacity(0.3),
+                    blurRadius: 15,
+                    spreadRadius: 2,
+                    offset: Offset(0, 6),
+                  ),
+                ],
+              ),
+              margin: EdgeInsets.symmetric(horizontal: 10.h, vertical: 5.v),
+              child: Column(
+                children: [
+                  // Member Status Header
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(25),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
+                        isVip
+                            ? Icon(
+                                FontAwesomeIcons.crown,
+                                color: Color(0xFFB8860B),
+                                size: 20,
+                              )
+                            : Icon(
+                                Icons.stars,
+                                color: Color(0xFF4682B4),
+                                size: 20,
+                              ),
+                        SizedBox(width: 8),
                         Text(
-                          "Points",
+                          isVip ? "VIP MEMBER" : "BASIC MEMBER",
                           style: GoogleFonts.poppins(
-                            color: Colors.black,
-                            fontSize: (int.parse(value[1]) < vipTarget)
-                                ? 12.adaptSize
-                                : 14.adaptSize,
+                            color:
+                                isVip ? Color(0xFFB8860B) : Color(0xFF4682B4),
+                            fontSize: 12.adaptSize,
                             fontWeight: FontWeight.bold,
+                            letterSpacing: 1.2,
                           ),
                         ),
-                        Text(
-                          value != null &&
-                                  value.isNotEmpty &&
-                                  value[0].isNotEmpty
-                              ? value[0]
-                              : '0',
-                          style: GoogleFonts.poppins(
-                            color: Colors.black,
-                            fontSize: (int.parse(value[1]) < vipTarget)
-                                ? 24.adaptSize
-                                : 28.adaptSize,
-                            fontWeight: FontWeight.bold,
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 15),
+
+                  // Points Section
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      Column(
+                        children: [
+                          Text(
+                            "Your Points",
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 14.adaptSize,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          SizedBox(height: 5),
+                          Container(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(15),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            child: Text(
+                              value != null &&
+                                      value.isNotEmpty &&
+                                      value[0].isNotEmpty
+                                  ? value[0]
+                                  : '0',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 28.adaptSize,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(width: 10),
+
+                      // Progress or VIP Crown
+                      if (!isVip) ...[
+                        Container(
+                          width: 2,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.white.withOpacity(0.3),
+                                Colors.white.withOpacity(0.7),
+                                Colors.white.withOpacity(0.3),
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                            ),
                           ),
                         ),
-                        if (int.parse(value[1]) < vipTarget)
-                          Column(
-                            children: [
-                              SizedBox(
-                                width: 100.h,
-                                child: Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      'Basic',
-                                      textAlign: TextAlign.left,
-                                      style: TextStyle(fontSize: 10.adaptSize),
-                                    ),
-                                    Text(
-                                      'VIP',
-                                      textAlign: TextAlign.right,
-                                      style: TextStyle(fontSize: 10.adaptSize),
-                                    ),
-                                  ],
+                        Column(
+                          children: [
+                            Icon(
+                              Icons.trending_up,
+                              color: Colors.white,
+                              size: 24,
+                            ),
+                            SizedBox(height: 5),
+                            Text(
+                              "To VIP",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: 5),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                "${1500 - int.parse(value![0])}",
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
                                 ),
                               ),
-                              SizedBox(height: 5.h), // Tambahkan sedikit spasi
-                              SizedBox(
-                                width: 100.h,
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(5),
-                                  child: LinearProgressIndicator(
-                                    value: (value != null && value.isNotEmpty)
-                                        ? (double.tryParse(value[1]) ?? 0) /
-                                            vipTarget
-                                        : 0,
-                                    backgroundColor: Colors.grey[300],
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.blue),
-                                  ),
+                            ),
+                            Text(
+                              "points left",
+                              style: GoogleFonts.poppins(
+                                color: Colors.white.withOpacity(0.9),
+                                fontSize: 10,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ] else ...[
+                        Column(
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.3),
+                                  width: 2,
+                                ),
+                              ),
+                              child: Icon(
+                                Icons.workspace_premium,
+                                color: Colors.white,
+                                size: 30,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                "VIP",
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.5,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
+                  ),
+
+                  if (!isVip) ...[
+                    SizedBox(height: 15),
+                    Container(
+                      width: double.infinity,
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Silver',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white.withOpacity(0.8),
+                                  fontSize: 10.adaptSize,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                'VIP',
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white.withOpacity(0.8),
+                                  fontSize: 10.adaptSize,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
-                          ), // Jika sudah VIP, tidak ditampilkan
-                      ],
-                    ),
-                    if (int.parse(value[1]) < vipTarget)
-                      Container(width: 2, height: 75, color: Colors.grey),
-                    if (int.parse(value[1]) < vipTarget)
-                      Column(
-                        mainAxisSize: MainAxisSize.min, // Tambahkan ini
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Column(children: [
-                            Text(
-                              "Road To VIP",
-                              style: GoogleFonts.poppins(
-                                  color: Colors.black,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            RichText(
-                              textAlign: TextAlign.center,
-                              text: TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: "${vipTarget - int.parse(value[1])}",
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.green,
-                                      fontSize: 24,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: ' Point To Go',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.black,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
+                          ),
+                          SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: Container(
+                              height: 8,
+                              child: LinearProgressIndicator(
+                                value: (value != null && value.isNotEmpty)
+                                    ? (double.tryParse(value[0]) ?? 0) / 1500
+                                    : 0,
+                                backgroundColor: Colors.white.withOpacity(0.3),
+                                valueColor: AlwaysStoppedAnimation<Color>(
+                                  Colors.white.withOpacity(0.8),
+                                ),
                               ),
-                            )
-                          ])
+                            ),
+                          ),
                         ],
                       ),
+                    ),
                   ],
-                ),
+                ],
               ),
             )
           : Container(
@@ -411,7 +557,7 @@ class _LandingScreenState extends State<LandingScreen> {
       context: context,
       builder: (BuildContext context) {
         return FutureBuilder(
-          future: LocalData.getData('kodec'),
+          future: LocalData.getData('barcode'),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
@@ -449,7 +595,7 @@ class _LandingScreenState extends State<LandingScreen> {
                                       isQRCode ? BoxFit.cover : BoxFit.contain),
                             ),
                             const SizedBox(height: 10),
-                            if (isQRCode) // Display text only for QR Code
+                            if (isQRCode)
                               Text(
                                 snapshot.data.toString(),
                               ),

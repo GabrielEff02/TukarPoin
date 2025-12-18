@@ -1,3 +1,4 @@
+import 'package:e_commerce/screen/gabriel/widgets/widget_helper.dart';
 import 'package:e_commerce/screen/home/landing_home.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,7 @@ import '../../constant/dialog_constant.dart';
 import '../../constant/image_constant.dart';
 import '../../constant/text_constant.dart';
 import '../../controller/auth_controller.dart';
-import '../../screen/auth/forgot_password_screen.dart';
+import '../srg/forgot_password_screen.dart';
 import '../../screen/auth/splash_screen.dart';
 import '../srg/verify_phone_screen.dart';
 import '../../screen/auth/register_screen.dart';
@@ -34,47 +35,28 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> alreadyLogIn() async {
-    if (await LocalData.containsKey('loginDate')) {
-      final String? loginDateStr = await LocalData.getData('loginDate');
-      if (loginDateStr != null) {
-        final DateTime? loginDate = DateTime.tryParse(loginDateStr);
-        if (loginDate != null) {
-          final Duration difference = DateTime.now().difference(loginDate);
-          if (difference.inDays < 2) {
-            if (await LocalData.containsKey('phone') &&
-                await LocalData.containsKey('password')) {
-              logincontroller.edtPhone.text = await LocalData.getData('phone');
-              logincontroller.edtPass.text =
-                  await LocalData.getData('password');
-              // clearCart();
-              logincontroller.validation(
-                context: context,
-                callback: (result, error) async {
-                  if (result != null && result['error'] != true) {
-                    if (result['data'][0]['register_confirmation'] == '0') {
-                      LocalData.saveData('email', result['data'][0]['email']);
-                      Get.to(() => VerifyPhoneScreen());
-                    } else {
-                      Get.offAll(LandingHome());
-                      // Get.offAll(SplashScreen());
-                    }
-                  } else {
-                    DialogConstant.alertError(error.toString());
-                  }
-                },
-              );
+    if (await LocalData.containsKey('phone') &&
+        await LocalData.containsKey('password')) {
+      logincontroller.edtPhone.text = await LocalData.getData('phone');
+      logincontroller.edtPass.text = await LocalData.getData('password');
+      // clearCart();
+      logincontroller.validation(
+        context: context,
+        callback: (result, error) async {
+          if (result != null && result['error'] != true) {
+            if (result['data'][0]['register_confirmation'] == '0') {
+              LocalData.saveData('email', result['data'][0]['email']);
+              LocalData.saveData('phone', result['data'][0]['phone']);
+              Get.to(() => VerifyPhoneScreen());
             } else {
-              clearCart();
+              Get.offAll(LandingHome());
+              // Get.offAll(SplashScreen());
             }
           } else {
-            clearCart();
+            DialogConstant.alertError('Login Gagal', error.toString());
           }
-        } else {
-          clearCart();
-        }
-      } else {
-        clearCart();
-      }
+        },
+      );
     } else {
       clearCart();
     }
@@ -185,7 +167,18 @@ class _LoginScreenState extends State<LoginScreen> {
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         GestureDetector(
-                            onTap: () => Get.to(() => ForgotPasswordScreen()),
+                            onTap: () => DialogConstant.showOtpMethodDialog(
+                                title: "Pilih Metode Pengiriman OTP",
+                                message:
+                                    "Pilih metode untuk menerima kode OTP verifikasi:",
+                                onWhatsApp: () =>
+                                    Get.to(() => ForgotPasswordScreen(
+                                          metode: 'Whatsapp',
+                                        )),
+                                onEmail: () =>
+                                    Get.to(() => ForgotPasswordScreen(
+                                          metode: 'Email',
+                                        ))),
                             child: Text(
                               'Lupa Kata Sandi?',
                               style: TextConstant.regular.copyWith(
@@ -201,11 +194,13 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: ButtonGreenWidget(
                         text: 'Submit',
                         onClick: () {
-                          print('hello');
                           logincontroller.validation(
                               context: context,
                               callback: (result, error) async {
                                 if (result != null && result['error'] != true) {
+                                  if (result['newVip'] > 0) {
+                                    await WidgetHelper.showVIPModal(context);
+                                  }
                                   if (result['data'][0]
                                           ['register_confirmation'] ==
                                       '0') {
@@ -213,10 +208,12 @@ class _LoginScreenState extends State<LoginScreen> {
                                         'email', result['data'][0]['email']);
                                     Get.to(() => VerifyPhoneScreen());
                                   } else {
-                                    Get.offAll(SplashScreen());
+                                    // Get.offAll(SplashScreen());
+                                    Get.offAll(LandingHome());
                                   }
                                 } else {
-                                  DialogConstant.alertError(error);
+                                  DialogConstant.alertError(
+                                      'Login Gagal', error);
                                 }
                               });
                         },

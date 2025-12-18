@@ -1,268 +1,539 @@
-// import 'package:barcode/barcode.dart';
-// import '../../../screen/gabriel/core/app_export.dart';
-// import 'package:flutter_svg/flutter_svg.dart';
-// import 'package:get/get.dart';
-// import 'package:google_fonts/google_fonts.dart';
+import 'dart:convert';
 
-// import '../../../constant/text_constant.dart';
-// import '../../../screen/auth/login_screen.dart';
-// import '../../navbar_menu/contact_screen.dart';
-// import '../../../screen/home/view/edit_profile_screen.dart';
-// import '../../../screen/srg/security_screen.dart';
+import 'package:e_commerce/api/api.dart';
+import 'package:e_commerce/constant/dialog_constant.dart';
+import 'package:e_commerce/screen/gabriel/core/app_export.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'dart:math' as math;
+import 'package:http/http.dart' as http;
 
-// class ProfileScreen extends StatelessWidget {
-//   const ProfileScreen({Key? key}) : super(key: key);
+class Kosongan extends StatelessWidget {
+  const Kosongan({Key? key}) : super(key: key);
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return Scaffold(
-//       appBar: AppBar(
-//         title: Padding(
-//           padding: const EdgeInsets.symmetric(vertical: 20),
-//           child: Center(
-//             child: const Text(
-//               "ACCOUNT",
-//               style: TextStyle(
-//                 color: Colors.black87,
-//                 fontWeight: FontWeight.w800,
-//                 fontSize: 20,
-//               ),
-//               textAlign: TextAlign.center,
-//             ),
-//           ),
-//         ),
-//       ),
-//       backgroundColor: Colors.transparent,
-//       body: Container(
-//         decoration: const BoxDecoration(
-//           gradient: LinearGradient(
-//             colors: [
-//               Color(0xFFB3E5FC), // Light blue
-//               Color.fromARGB(255, 61, 192, 253), // Medium light blue
-//             ],
-//             begin: Alignment.topLeft,
-//             end: Alignment.bottomRight,
-//           ),
-//         ),
-//         height: double.infinity,
-//         width: double.infinity,
-//         child: Column(
-//           children: [
-//             Container(
-//               padding: const EdgeInsets.all(20),
-//               child: SingleChildScrollView(
-//                 child: Column(
-//                   children: [
-//                     // Row(
-//                     //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                     //   children: [
-//                     //     GestureDetector(
-//                     //       onTap: () => _showBarcodePopup(context, false),
-//                     //       child: itemMenu("Barcode", FontAwesomeIcons.barcode,
-//                     //           barcode: true),
-//                     //     ),
-//                     //     GestureDetector(
-//                     //       onTap: () => _showBarcodePopup(context, true),
-//                     //       child: itemMenu("QR Code", Icons.qr_code_2,
-//                     //           barcode: true),
-//                     //     ),
-//                     //   ],
-//                     // ),
-//                     // const SizedBox(height: 5),
-//                     GestureDetector(
-//                       onTap: () => Get.to(() => const EditProfileScreen()),
-//                       child: itemMenu('Account Detail', Icons.person),
-//                     ),
-//                     // const SizedBox(height: 5),
-//                     // GestureDetector(
-//                     //   onTap: () => Get.to(() => AddressListScreen()),
-//                     //   child: itemMenu('Address Detail', Icons.house),
-//                     // ),
-//                     const SizedBox(height: 5),
-//                     GestureDetector(
-//                       onTap: () => Get.to(() => SecurityScreen()),
-//                       child: itemMenu('Security', Icons.lock),
-//                     ),
-//                     const SizedBox(height: 5),
-//                     GestureDetector(
-//                       onTap: () => Get.to(() => const ContactScreen()),
-//                       child: itemMenu('Contact Us', Icons.call),
-//                     ),
-//                     const SizedBox(height: 5),
-//                     GestureDetector(
-//                       onTap: () {
-//                         LocalData.removeAllPreference();
-//                         Get.offAll(const LoginScreen());
-//                       },
-//                       child: itemMenu('Log Out', Icons.exit_to_app_rounded),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Spinning Wheel',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+        useMaterial3: true,
+      ),
+      home: const SpinningWheelPage(),
+    );
+  }
+}
 
-//   Widget itemMenu(String title, IconData icons,
-//       {bool barcode = false, bool point = false}) {
-//     final decoration = barcode
-//         ? BoxDecoration(
-//             gradient: const LinearGradient(
-//                 // colors: [Color.fromARGB(255, 204, 239, 237), Color(0xFF80CBC4)],
-//                 // colors: [Color(0xFFD7C49E), Color(0xFFA67C47)],4
-//                 // colors: [Color(0xFFE7D3E2), Color(0xFFC0A3C6)],
-//                 colors: [Color(0xFFFF6F61), Color(0xFFFFB74D)],
-//                 begin: Alignment.topLeft,
-//                 end: Alignment.bottomRight),
-//             borderRadius: BorderRadius.circular(10),
-//             boxShadow: const [
-//               BoxShadow(
-//                 color: Colors.black26,
-//                 blurRadius: 8,
-//                 spreadRadius: 1,
-//                 offset: Offset(0, 4),
-//               ),
-//             ],
-//           )
-//         : point
-//             ? BoxDecoration(
-//                 color: Color.fromARGB(255, 255, 255, 255),
-//                 // gradient: LinearGradient(
-//                 //   colors: [Colors.orangeAccent, Colors.deepOrange],
-//                 //   begin: Alignment.topLeft,
-//                 //   end: Alignment.bottomRight,
-//                 // ),
-//                 borderRadius: BorderRadius.circular(15),
-//                 boxShadow: [
-//                   BoxShadow(
-//                     color: Color(0xFFF8E2C8).withValues(alpha: 100),
-//                     blurRadius: 10,
-//                     spreadRadius: 2,
-//                     offset: Offset(0, 4),
-//                   ),
-//                 ],
-//               )
-//             : BoxDecoration(
-//                 color: Colors.white,
-//                 borderRadius: BorderRadius.circular(10),
-//                 boxShadow: const [
-//                   BoxShadow(
-//                     color: Colors.black26,
-//                     blurRadius: 8,
-//                     spreadRadius: 1,
-//                     offset: Offset(0, 4),
-//                   ),
-//                 ],
-//               );
-//     return Container(
-//       decoration: decoration,
-//       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-//       margin: const EdgeInsets.only(bottom: 10),
-//       child: Row(
-//         children: [
-//           point
-//               ? Icon(
-//                   Icons.stars,
-//                   color: Colors.black,
-//                   size: 40,
-//                 )
-//               : Icon(icons, color: Colors.black87),
-//           const SizedBox(width: 15),
-//           point
-//               ? Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     Text(
-//                       "Your Points",
-//                       style: GoogleFonts.poppins(
-//                         color: Colors.black,
-//                         fontSize: 16,
-//                         fontWeight: FontWeight.w500,
-//                       ),
-//                     ),
-//                     Text(
-//                       title,
-//                       style: GoogleFonts.poppins(
-//                         color: Colors.black,
-//                         fontSize: 28,
-//                         fontWeight: FontWeight.bold,
-//                       ),
-//                     ),
-//                   ],
-//                 )
-//               : Text(
-//                   title,
-//                   style: TextConstant.medium.copyWith(
-//                     color: Colors.black87,
-//                     fontSize: 15,
-//                   ),
-//                 ),
-//         ],
-//       ),
-//     );
-//   }
+class WheelItem {
+  final int value;
+  double weight;
+  String label;
+  String color;
 
-//   void _showBarcodePopup(BuildContext context, bool isQRCode) {
-//     showDialog(
-//       context: context,
-//       builder: (BuildContext context) {
-//         return FutureBuilder(
-//           future: LocalData.getData('phone'),
-//           builder: (context, snapshot) {
-//             if (snapshot.connectionState == ConnectionState.waiting) {
-//               return const Center(child: CircularProgressIndicator());
-//             } else if (snapshot.hasError) {
-//               return const Center(child: Icon(Icons.error));
-//             } else if (!snapshot.hasData || snapshot.data == null) {
-//               return const Center(child: Icon(Icons.error)); // If no data
-//             }
+  WheelItem(
+      {required this.value,
+      this.label = '',
+      this.weight = 1.0,
+      this.color = ''});
+}
 
-//             final code = isQRCode
-//                 ? Barcode.qrCode().toSvg(snapshot.data.toString())
-//                 : Barcode.code39().toSvg(snapshot.data.toString());
+class SpinningWheelPage extends StatefulWidget {
+  const SpinningWheelPage({Key? key}) : super(key: key);
 
-//             return TweenAnimationBuilder<double>(
-//               tween: Tween<double>(begin: 1.0, end: 1.1),
-//               duration: const Duration(milliseconds: 500),
-//               builder: (context, scale, child) {
-//                 return Transform.scale(
-//                   scale: scale,
-//                   child: Dialog(
-//                     child: Container(
-//                       height: 400,
-//                       decoration: const BoxDecoration(color: Colors.white),
-//                       padding: const EdgeInsets.symmetric(vertical: 20),
-//                       child: Center(
-//                         child: Column(
-//                           mainAxisSize: MainAxisSize.min,
-//                           children: [
-//                             Padding(
-//                               padding: EdgeInsets.symmetric(horizontal: 10),
-//                               child: SvgPicture.string(code,
-//                                   height: isQRCode ? 200 : 250,
-//                                   width: isQRCode ? 200 : 200,
-//                                   fit:
-//                                       isQRCode ? BoxFit.cover : BoxFit.contain),
-//                             ),
-//                             const SizedBox(height: 10),
-//                             if (isQRCode) // Display text only for QR Code
-//                               Text(
-//                                 snapshot.data.toString(),
-//                               ),
-//                           ],
-//                         ),
-//                       ),
-//                     ),
-//                   ),
-//                 );
-//               },
-//             );
-//           },
-//         );
-//       },
-//     );
-//   }
-// }
+  @override
+  State<SpinningWheelPage> createState() => _SpinningWheelPageState();
+}
+
+class _SpinningWheelPageState extends State<SpinningWheelPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  bool status = false;
+  List<WheelItem> items = [];
+  int numberOfSections = 10;
+  int? result;
+  bool isSpinning = false;
+  String judul = '';
+  String ketentuan = '';
+  int chances = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(seconds: 3),
+      vsync: this,
+    );
+
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeWheel();
+    });
+  }
+
+  Future<void> _initializeWheel() async {
+    DialogConstant.loading(context, 'Loading...');
+    items.clear();
+    await getData();
+    Navigator.pop(context);
+  }
+
+  Future<void> getData() async {
+    final response = await http
+        .get(Uri.parse(API.BASE_URL + '/api/poin/get-wheel'))
+        .timeout(Duration(seconds: 30));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body)['data'];
+      final chance = await LocalData.getData('chance');
+      setState(() {
+        chances = int.parse(chance);
+        judul = data['name'] ?? '';
+        ketentuan = data['description'] ?? '';
+        for (var item in data['section']) {
+          items.add(WheelItem(
+              value: (item['value'] is int
+                  ? item['value']
+                  : int.parse(item['value'])),
+              label: (item['label'] is String
+                  ? item['label']
+                  : item['label'].toString()),
+              weight: (item['weight'] is double
+                  ? item['weight']
+                  : double.parse(item['weight'])),
+              color: (item['color'] is String
+                  ? item['color']
+                  : item['color'].toString())));
+          status = true;
+        }
+      });
+    } else {
+      setState(() {
+        status = false;
+      });
+    }
+  }
+
+  int _getWeightedRandomIndex() {
+    double totalWeight = items.fold(0, (sum, item) => sum + item.weight);
+    double random = math.Random().nextDouble() * totalWeight;
+
+    double cumulativeWeight = 0;
+    for (int i = 0; i < items.length; i++) {
+      cumulativeWeight += items[i].weight;
+      if (random <= cumulativeWeight) {
+        return i;
+      }
+    }
+    return 0;
+  }
+
+  void _spin() {
+    if (isSpinning) return;
+
+    setState(() {
+      isSpinning = true;
+      result = null;
+    });
+
+    int targetIndex = _getWeightedRandomIndex();
+    double sectionAngle = 2 * math.pi / items.length;
+    double targetAngle = (targetIndex * sectionAngle) + (sectionAngle / 2);
+
+    double totalRotation = (math.pi * 2 * 5) + (4 * math.pi - targetAngle);
+
+    _animation = Tween<double>(
+      begin: 0,
+      end: totalRotation,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _controller.forward(from: 0).then((_) {
+      _showWinDialog();
+      setState(() {
+        result = items[targetIndex].value;
+        isSpinning = false;
+      });
+      _controller.reset();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _showWinDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Congratulations!"),
+          content: Text("You Won: ${(result)} Point"),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                if (await LocalData.containsKey('point')) {
+                  final poin = await LocalData.getData('point');
+                  final totalPoin = result! + int.parse(poin);
+                  LocalData.saveData('point', totalPoin.toString());
+                  LocalData.saveData('max_point', totalPoin.toString());
+                }
+                Navigator.of(context).pop(); // Close the pop-up
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
+    );
+
+    _updatePointsInDatabase();
+  }
+
+  Future<void> _updatePointsInDatabase() async {
+    try {
+      final username = await LocalData.getData('user');
+      int points = result!;
+
+      // Send data to the server
+      final response = await API.basePost(
+          '/api/poin/earn-point',
+          {
+            'username': username,
+            'points': points,
+            'deskripsi': 'Anda Mendapatkan $points Point dari Spining Wheel',
+          },
+          {'Content-Type': 'application/json'},
+          true, (result, error) {
+        print(result);
+        print(error);
+      });
+    } catch (e) {
+      print('Error updating points: $e');
+    }
+  }
+
+  Widget _spiningTitle() {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        margin: const EdgeInsets.only(left: 20, top: 50, right: 20),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+          border: Border.all(
+            color: Colors.yellowAccent,
+            width: 2,
+          ),
+          gradient: const LinearGradient(
+            colors: [
+              Color.fromARGB(255, 91, 0, 107),
+              Color.fromARGB(255, 235, 42, 203),
+            ],
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight,
+          ),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              judul,
+              style: TextStyle(
+                fontSize: 19,
+                color: Colors.yellowAccent,
+              ),
+            ),
+            _spendingInfoButton(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSpendingInfoDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15),
+          ),
+          backgroundColor: Colors.white, // White background
+          title: Row(
+            children: [
+              const Icon(
+                Icons.info_outline,
+                color: Colors.yellowAccent, // Blue
+                size: 30,
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                "Info Kesempatan Undi",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.yellowAccent, // Blue
+                ),
+              ),
+            ],
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  gradient: const LinearGradient(
+                    colors: [
+                      Color.fromARGB(255, 137, 35, 155),
+                      Color.fromARGB(255, 235, 42, 203),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Text(
+                      ketentuan,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF4CAF50), // Green
+                            Color(0xFF66BB6A), // Light Green
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: const Text(
+                        "🎯 Belanja lebih banyak = Lebih banyak kesempatan!",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _spendingInfoButton() {
+    return Container(
+      child: IconButton(
+        onPressed: _showSpendingInfoDialog,
+        icon: const Icon(
+          Icons.info_outline,
+          color: Colors.white,
+          size: 24,
+        ),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shape: CircleBorder(),
+          elevation: 5,
+        ),
+      ),
+    );
+  }
+
+  Widget _chanceRemaining() {
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Text(
+        "Remaining Chances: $chances",
+        style: TextStyle(
+          fontSize: 20,
+          color: Colors.yellowAccent,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        height: double.infinity,
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: NetworkImage(
+                "https://i.pinimg.com/736x/e7/3a/b8/e73ab8cbf6752d9523558f9c2c63da78.jpg"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: status
+              ? Column(
+                  children: [
+                    _spiningTitle(),
+                    SizedBox(height: 10),
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.only(
+                            top: 38, left: 30, right: 30, bottom: 20),
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        height: MediaQuery.of(context).size.height * 0.5,
+                        decoration: const BoxDecoration(
+                            image: DecorationImage(
+                          fit: BoxFit.contain,
+                          image: AssetImage("assets/images/belt.png"),
+                        )),
+                        child: InkWell(
+                          onTap: () {
+                            if (!isSpinning && chances > 0) {
+                              _spin();
+                              isSpinning = true;
+                              chances--;
+                              LocalData.saveData('chance', chances.toString());
+                            } else if (chances == 0) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('No chances left!')),
+                              );
+                            }
+                          },
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              AnimatedBuilder(
+                                animation: _animation,
+                                builder: (context, child) {
+                                  return Transform.rotate(
+                                    angle: _animation.value,
+                                    child: CustomPaint(
+                                      size: const Size(300, 300),
+                                      painter: WheelPainter(items: items),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    _chanceRemaining(),
+                  ],
+                )
+              : Container(),
+        ),
+      ),
+    );
+  }
+}
+
+class WheelPainter extends CustomPainter {
+  final List<WheelItem> items;
+
+  WheelPainter({required this.items});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = math.min(size.width, size.height) / 2;
+    final sectionAngle = 2 * math.pi / items.length;
+
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    // Colors for sections
+
+    for (int i = 0; i < items.length; i++) {
+      final startAngle = i * sectionAngle - math.pi / 2;
+      paint.color = Color(int.parse(items[i].color.replaceFirst('#', '0xff')));
+
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sectionAngle,
+        true,
+        paint,
+      );
+
+      // Draw border
+      final borderPaint = Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
+
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sectionAngle,
+        true,
+        borderPaint,
+      );
+
+      // Draw text
+      final textAngle = startAngle + sectionAngle / 2;
+      final textRadius = radius * 0.7;
+      final textX = center.dx + textRadius * math.cos(textAngle);
+      final textY = center.dy + textRadius * math.sin(textAngle);
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: '${items[i].value}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            shadows: [
+              Shadow(
+                blurRadius: 3,
+                color: Colors.black45,
+                offset: Offset(1, 1),
+              ),
+            ],
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(
+          textX - textPainter.width / 2,
+          textY - textPainter.height / 2,
+        ),
+      );
+    }
+
+    // Draw center circle
+    paint.color = Colors.white;
+    canvas.drawCircle(center, 20, paint);
+    paint.color = Colors.grey.shade300;
+    canvas.drawCircle(center, 15, paint);
+  }
+
+  @override
+  bool shouldRepaint(WheelPainter oldDelegate) => true;
+}

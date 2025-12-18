@@ -31,6 +31,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   Map<String, String> listController = {};
   String points = "0";
   String originalEmailAddress = "";
+  String originalPhoneNumber = "";
   String? profilePicturePath;
   final NumberFormat currencyFormatter = NumberFormat.currency(
     locale: 'id_ID',
@@ -193,6 +194,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       nameController.text = fullName ?? '';
       phoneController.text = phone ?? '';
       originalEmailAddress = email ?? '';
+      originalPhoneNumber = phone ?? '';
       points = pointValue ?? '0';
       pointsController.text = points;
       profilePicturePath = profilePicture;
@@ -418,19 +420,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 LocalData.saveData('full_name', listController['name']!);
               });
 
-              Get.snackbar('Success', 'Profile updated successfully!',
-                  colorText: Colors.white,
-                  icon: const Icon(
-                    Icons.check,
-                    color: Colors.green,
-                  ),
-                  padding: const EdgeInsets.only(top: 10, bottom: 10),
-                  backgroundColor: const Color.fromARGB(83, 0, 0, 0),
-                  snackPosition: SnackPosition.BOTTOM);
-
-              if (result['email'] == true) {
-                Get.offAll(() => const LoginScreen());
-              }
+              DialogConstant.showSuccessAlert(
+                  title: 'Success',
+                  message: 'Profile updated successfully!',
+                  onComplete: () {
+                    if (result['email'] == true) {
+                      Get.offAll(() => const LoginScreen());
+                    }
+                  });
             } else {
               print(error);
               print(result);
@@ -1016,13 +1013,23 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   void _confirmEditProfile() {
     // Check if email address has changed
     if (emailController.text != originalEmailAddress) {
-      _showEmailChangeConfirmation();
+      _showEmailChangeConfirmation(
+          "Email telah diubah",
+          "Anda telah mengubah alamat email Anda. Demi keamanan, Anda perlu masuk kembali.",
+          originalEmailAddress,
+          emailController.text);
+    } else if (phoneController.text != originalPhoneNumber) {
+      _showEmailChangeConfirmation(
+          "Nomor Telepon telah diubah",
+          "Anda telah mengubah nomor telepon Anda. Demi keamanan, Anda perlu masuk kembali.",
+          originalPhoneNumber,
+          phoneController.text);
     } else {
       _showNormalConfirmation();
     }
   }
 
-  void _showEmailChangeConfirmation() {
+  void _showEmailChangeConfirmation(title, subTitle, original, baru) {
     Get.dialog(
       AlertDialog(
         shape: RoundedRectangleBorder(
@@ -1043,9 +1050,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
             ),
             const SizedBox(width: 12),
-            const Expanded(
+            Expanded(
               child: Text(
-                "Email address Changed",
+                title,
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF2E3A59),
@@ -1059,8 +1066,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Anda telah mengubah alamat email Anda. Demi keamanan, Anda perlu masuk kembali.",
+            Text(
+              subTitle,
               style: TextStyle(
                 color: Color(0xFF6B7280),
                 fontSize: 16,
@@ -1087,9 +1094,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       Expanded(
                         child: Text(
-                          originalEmailAddress.isEmpty
-                              ? "Not set"
-                              : originalEmailAddress,
+                          original.isEmpty ? "Not set" : original,
                           style: const TextStyle(
                             color: Color(0xFF6B7280),
                           ),
@@ -1109,7 +1114,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       ),
                       Expanded(
                         child: Text(
-                          phoneController.text,
+                          baru,
                           style: const TextStyle(
                             color: Color(0xFF059669),
                             fontWeight: FontWeight.w600,

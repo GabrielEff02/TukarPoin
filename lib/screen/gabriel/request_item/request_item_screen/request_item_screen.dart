@@ -71,7 +71,10 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
       final data = {
         'product_name': _productNameController.text,
         'quantity': int.parse(_quantityController.text),
-        'username': name
+        'username': name,
+        'kode': '0000',
+        'price': 0,
+        'compan_code': ''
       };
       var header = <String, String>{};
 
@@ -82,29 +85,14 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
             (result, error) {
           Get.back();
           if (error != null) {
-            DialogConstant.alertError('Request Item Failed');
+            DialogConstant.alertError(
+                'Request Item tidak berhasil', error['message']);
           }
           if (result != null) {
-            Alert(
-              context: context,
-              type: AlertType.success,
-              title: "Success",
-              desc: "Requested Item Submitted Successfully!",
-              buttons: [
-                DialogButton(
-                  onPressed: () {
-                    Get.back();
-                    Get.back();
-                  },
-                  color: Color(0xFF4CAF50),
-                  radius: BorderRadius.circular(10.0),
-                  child: Text(
-                    "OK",
-                    style: TextStyle(color: Colors.white, fontSize: 18),
-                  ),
-                ),
-              ],
-            ).show();
+            DialogConstant.showSuccessAlert(
+                title: 'Permintaan Berhasil',
+                message:
+                    'Item berhasil diminta! Silahkan menunggu barang untuk dikonfirmasi');
           }
         });
       });

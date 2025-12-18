@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:e_commerce/screen/auth/second_splash.dart';
 import 'package:e_commerce/screen/gabriel/core/app_export.dart';
+import 'package:e_commerce/screen/home/landing_home.dart';
 import 'package:get/get.dart';
 
 class ShoppingCartController {
@@ -26,6 +26,7 @@ class ShoppingCartController {
         'kode': transaction['kode'],
         'quantity': quantity,
         'total_price': price * quantity,
+        'price': price,
       };
     }).toList();
 
@@ -33,26 +34,23 @@ class ShoppingCartController {
     postTransaction!['username'] = username;
     postTransaction['items'] = items;
     postTransaction['compan_code'] = companCode;
-
+    postTransaction['datetime'] = DateTime.now().toIso8601String();
     API.basePost('/api/poin/update-transactions', postTransaction, header, true,
         (result, error) async {
       if (error != null) {
         callback?.call(null, error);
       } else {
-        // Update local point
-        int currentPoint = int.parse(await LocalData.getData('point'));
-        int totalHarga =
-            items.fold(0, (sum, item) => sum + item['total_price'] as int);
-        LocalData.saveData('point', (currentPoint - totalHarga).toString());
+        if (result['error'] != '') {
+          final cart = jsonDecode(await LocalData.getData('cart'));
+          cart.remove(companCode);
+          LocalData.saveData('cart', jsonEncode(cart));
+          int currentPoint = int.parse(await LocalData.getData('point'));
+          int totalHarga =
+              items.fold(0, (sum, item) => sum + item['total_price'] as int);
+          LocalData.saveData('point', (currentPoint - totalHarga).toString());
+        }
 
-        // Hapus cart berdasarkan compan_code
-        final cart = jsonDecode(await LocalData.getData('cart'));
-        cart.remove(companCode);
-        LocalData.saveData('cart', jsonEncode(cart));
-
-        // Navigasi dan callback
-        Get.back();
-        Get.offAll(SecondSplash());
+        Get.offAll(LandingHome());
         callback?.call(result, null);
       }
     });

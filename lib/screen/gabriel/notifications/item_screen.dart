@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'package:e_commerce/constant/dialog_constant.dart';
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
 import 'package:intl/intl.dart';
@@ -15,19 +17,20 @@ class ItemScreen extends StatefulWidget {
 }
 
 class _ItemScreenState extends State<ItemScreen> {
-  bool checkCompan = false;
-
-  void checkingCompan() async {
-    final checkingCompan = await LocalData.containsKey('compan_code');
-    setState(() {
-      checkCompan = checkingCompan;
-    });
-  }
+  String selectedCompanyCode = 'all';
 
   @override
   void initState() {
     super.initState();
-    checkingCompan();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadInitialData();
+    });
+  }
+
+  Future<void> loadInitialData() async {
+    DialogConstant.loading(context, 'Loading...');
+    await Future.delayed(Duration(seconds: 1));
+    Get.back();
   }
 
   NumberFormat currencyFormatter =
@@ -35,257 +38,169 @@ class _ItemScreenState extends State<ItemScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          'Product Detail',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
-        ),
-        centerTitle: true,
-        iconTheme: IconThemeData(color: Colors.black),
-      ),
-      body: Stack(
-        children: [
-          // Background Gradient
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.white,
-                  Colors.grey.shade200,
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          title: Text(
+            'Product Detail',
+            style: TextStyle(
+              color: Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 24,
             ),
           ),
-          // Main Content
-          SingleChildScrollView(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 100),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                if (!checkCompan)
-                  Column(
-                    children: [
-                      Text(
-                        'Harap memilih Cabang terlebih Dahulu agar dapat melakukan transaksi!!!',
-                        style: TextStyle(
-                            color: Colors.red, fontWeight: FontWeight.w900),
+          centerTitle: true,
+          iconTheme: IconThemeData(color: Colors.black),
+        ),
+        body: Stack(
+          children: [
+            // Background Gradient
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white,
+                    Colors.grey.shade200,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
+            // Main Content
+            SingleChildScrollView(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 100),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Padding(padding: EdgeInsets.all(10..adaptSize)),
+                  Center(
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(30),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.purple.shade100,
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                          BoxShadow(
+                            color: Colors.white,
+                            blurRadius: 10,
+                            offset: Offset(-10, -10),
+                          ),
+                        ],
                       ),
-                      Padding(padding: EdgeInsets.all(10..adaptSize)),
-                    ],
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(30),
+                        child: CustomImageView(
+                          imagePath:
+                              '${API.BASE_URL}/images/hadiah_stiker/${widget.data['image_url']}',
+                          height: 250,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
                   ),
-                Center(
-                  child: Container(
-                    width: double.infinity,
+                  const SizedBox(height: 24),
+                  Container(
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.7),
+                          Colors.grey.shade200.withOpacity(0.5),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.4),
+                        width: 1.5,
+                      ),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.purple.shade100,
+                          color: Colors.grey.shade300,
                           blurRadius: 20,
                           spreadRadius: 5,
                         ),
-                        BoxShadow(
-                          color: Colors.white,
-                          blurRadius: 10,
-                          offset: Offset(-10, -10),
-                        ),
                       ],
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(30),
-                      child: CustomImageView(
-                        imagePath:
-                            '${API.BASE_URL}/images/hadiah_stiker/${widget.data['image_url']}',
-                        height: 250,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(20),
-                    gradient: LinearGradient(
-                      colors: [
-                        Colors.white.withOpacity(0.7),
-                        Colors.grey.shade200.withOpacity(0.5),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Title
+                        Text(
+                          widget.data['nama'] ?? 'Unknown Product',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.deepPurple.shade700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        // Price
+                        Row(
+                          children: [
+                            Text(
+                              'Point: ${widget.data['price'] is int ? currencyFormatter.format(widget.data['price'] ?? 0) : currencyFormatter.format(int.tryParse(widget.data['price']) ?? 0)}',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.deepPurple,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        // Quantity
+                        Row(
+                          children: [
+                            Icon(Icons.inventory, color: Colors.black54),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Quantity: ${((widget.data['quantity'] is int ? widget.data['quantity'] : int.tryParse(widget.data['quantity']) ?? 0) == 0) ? 'Habis' : widget.data['quantity'] ?? 0}',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        // Description
+                        Text(
+                          widget.data['deskripsi'] ?? 'Tidak Ada Deskripsi.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey.shade800,
+                            height: 1.5,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
                       ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
                     ),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.4),
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.shade300,
-                        blurRadius: 20,
-                        spreadRadius: 5,
-                      ),
-                    ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Title
-                      Text(
-                        widget.data['nama'] ?? 'Unknown Product',
-                        style: TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.deepPurple.shade700,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      // Price
-                      Row(
-                        children: [
-                          Text(
-                            'Price: ${widget.data['price'] is int ? currencyFormatter.format(widget.data['price'] ?? 0) : currencyFormatter.format(int.tryParse(widget.data['price']) ?? 0)}',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.deepPurple,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      // Quantity
-                      Row(
-                        children: [
-                          Icon(Icons.inventory, color: Colors.black54),
-                          const SizedBox(width: 5),
-                          Text(
-                            'Quantity: ${(widget.data['quantity'] == 0) ? 'Habis' : widget.data['quantity'] ?? 0}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.black87,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      // Description
-                      Text(
-                        widget.data['deskripsi'] ?? 'Tidak Ada Deskripsi.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey.shade800,
-                          height: 1.5,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      FutureBuilder<List<Map<String, dynamic>>>(
-                        future: getStockDetail(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return Center(child: CircularProgressIndicator());
-                          } else if (snapshot.hasError) {
-                            return Center(
-                                child: Text(
-                                    'Terjadi kesalahan saat mengambil data'));
-                          } else if (!snapshot.hasData ||
-                              snapshot.data!.isEmpty) {
-                            return Center(
-                                child: Text('Tidak ada outlet tersedia'));
-                          } else {
-                            final stockData = snapshot.data!;
-                            return FutureBuilder(
-                              future: LocalData.getData(
-                                  'compan_code'), // Mengambil data 'compan_code'
-                              builder: (context, snapshot) {
-                                if (!snapshot.hasData ||
-                                    snapshot.data!.isEmpty) {
-                                  // Jika tidak ada data atau data kosong
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Stock:',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      ...stockData.map((item) {
-                                        return Text(
-                                          '${item['name']}: ${item['quantity']}',
-                                          style: TextStyle(fontSize: 14),
-                                        );
-                                      }).toList(),
-                                    ],
-                                  );
-                                } else {
-                                  return Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Stock:',
-                                        style: TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      ...stockData.map((item) {
-                                        if (item['compan_code'] ==
-                                            snapshot.data!) {
-                                          return Padding(
-                                            padding: const EdgeInsets.only(
-                                                bottom: 16.0),
-                                            child: Text(
-                                              '${item['name']}: ${item['quantity']}',
-                                              style: TextStyle(fontSize: 14),
-                                            ),
-                                          );
-                                        }
-                                        return Container();
-                                      }).toList(),
-                                    ],
-                                  );
-                                }
-                              },
-                            );
-                          }
-                        },
-                      )
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
-      ),
-      // Floating Action Button with Animation using floatingActionButtonAnimator
-      floatingActionButton: checkCompan
-          ? FloatingActionButton(
-              onPressed: () async {
-                _bukaModalStok(widget.data['quantity'], widget.data['nama'],
-                    widget.data['price']);
-              },
-              backgroundColor: Colors.deepPurple,
-              child: Icon(Icons.shopping_cart, color: Colors.white),
-            )
-          : null,
-      floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
-    );
+          ],
+        ),
+        // Floating Action Button with Animation using floatingActionButtonAnimator
+        floatingActionButton: FloatingActionButton(
+          onPressed: () async {
+            _bukaModalStok(widget.data['quantity'], widget.data['nama'],
+                widget.data['price']);
+          },
+          backgroundColor: Colors.deepPurple,
+          child: Icon(Icons.shopping_cart, color: Colors.white),
+        ));
   }
 
   Future<List<Map<String, dynamic>>> getStockDetail() async {
@@ -465,8 +380,8 @@ class _ItemScreenState extends State<ItemScreen> {
                           }
 
                           LocalData.saveData('cart', jsonEncode(cardData));
-                          Navigator.pushReplacementNamed(
-                              context, AppRoutes.showItemsScreen);
+                          Get.back();
+                          Get.toNamed(AppRoutes.showItemsScreen);
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,

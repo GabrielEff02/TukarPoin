@@ -3,13 +3,12 @@ import 'dart:math';
 import 'package:e_commerce/constant/dialog_constant.dart';
 import 'package:e_commerce/screen/gabriel/core/app_export.dart';
 import 'package:e_commerce/screen/gabriel/notifications/item_screen.dart';
+import 'package:e_commerce/screen/navbar_menu/request_item/request_item_screen/request_item_screen.dart';
 import 'package:intl/intl.dart';
 
 import 'package:get/get.dart';
 
 import 'dart:async';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 class CheckoutMainScreen extends StatefulWidget {
   const CheckoutMainScreen({super.key});
@@ -20,10 +19,8 @@ class CheckoutMainScreen extends StatefulWidget {
 
 class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
   static List<dynamic> productData = [];
-  List<Map<String, dynamic>> companyCode = [];
-  String selectedCompanyCode = 'all';
   TextEditingController searchController = TextEditingController();
-  String selectedSortOption = 'price_desc';
+  String selectedSortOption = 'name_asc';
   final List<Map<String, String>> sortOptions = [
     {'value': 'name_asc', 'label': 'Nama A-Z'},
     {'value': 'name_desc', 'label': 'Nama Z-A'},
@@ -43,37 +40,8 @@ class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
 
   Future<void> loadInitialData() async {
     DialogConstant.loading(context, 'Loading...');
-    await getCompan();
     await getProductData();
-    await localDataCheck();
     Get.back();
-  }
-
-  Future<void> getCompan() async {
-    try {
-      final response =
-          await http.get(Uri.parse('${API.BASE_URL}/api/poin/company'));
-
-      if (response.statusCode == 200) {
-        // Mengonversi JSON response menjadi List<Map<String, dynamic>>
-        List<dynamic> jsonData = json.decode(response.body);
-        setState(() {
-          companyCode = [
-            {'compan_code': 'all', 'name': 'Pilih Cabang'}
-          ];
-          companyCode.addAll(jsonData.map((outlet) {
-            return {
-              'compan_code': outlet['compan_code'],
-              'name': outlet['name']
-            };
-          }).toList());
-        });
-      } else {
-        throw Exception('Failed to load data');
-      }
-    } catch (e) {
-      throw Exception('Failed to load data: $e');
-    }
   }
 
   Future<void> getProductData() async {
@@ -89,40 +57,16 @@ class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
     });
   }
 
-  Future<void> localDataCheck() async {
-    if (await LocalData.containsKey('compan_code')) {
-      final compan_code = await LocalData.getData('compan_code');
-      setState(() {
-        selectedCompanyCode = compan_code;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: WidgetHelper.appbarWidget(() {
-        Get.back();
-      }, Text('Redeem'), actions: [
-        DropdownButton<String>(
-          hint: Text("Pilih Perusahaan"),
-          value: selectedCompanyCode,
-          items: companyCode.map((company) {
-            return DropdownMenuItem<String>(
-              value: company["compan_code"], // Menyimpan company_code
-              child: Text(company["name"]!), // Menampilkan name
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            setState(() {
-              selectedCompanyCode = newValue!;
-            });
-            LocalData.saveData('compan_code', selectedCompanyCode);
-            loadInitialData();
-          },
-        ),
-      ]),
+      appBar: WidgetHelper.appbarWidget(
+        () {
+          Get.back();
+        },
+        Text('Redeem'),
+      ),
       body: Column(
         children: [
           Container(
@@ -296,7 +240,7 @@ class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
       height: 300,
       padding: EdgeInsets.all(16.0),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: product['quantity'] == 0 ? Colors.grey.shade200 : Colors.white,
         borderRadius: BorderRadius.circular(12.0),
         boxShadow: [
           BoxShadow(
@@ -308,9 +252,13 @@ class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
       ),
       child: GestureDetector(
         onTap: () {
-          Get.to(ItemScreen(data: product.map((key, value) {
-            return MapEntry(key, value.toString());
-          })));
+          product['quantity'] == 0
+              ? Get.to(RequestItemScreen(data: product.map((key, value) {
+                  return MapEntry(key, value.toString());
+                })))
+              : Get.to(ItemScreen(data: product.map((key, value) {
+                  return MapEntry(key, value.toString());
+                })));
         },
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -342,7 +290,7 @@ class _CheckoutMainScreenState extends State<CheckoutMainScreen> {
             ),
             SizedBox(height: 4), // Space between price and quantity
             Text(
-              'Quantity: ${product['quantity']}', // Product quantity
+              'Quantity: ${product['quantity'] == 0 ? 'Habis' : product['quantity']}', // Product quantity
               style: TextStyle(
                 fontSize: 14, // Font size for quantity
                 color: Colors.grey[600], // Grey color for quantity

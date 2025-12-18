@@ -1,167 +1,236 @@
-import 'package:e_commerce/api/api.dart';
-import 'package:e_commerce/utils/local_data.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'dart:math' as math;
-import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-class SpiningWheel extends StatefulWidget {
-  const SpiningWheel({super.key});
+import 'package:e_commerce/constant/dialog_constant.dart';
+import 'package:e_commerce/screen/gabriel/core/app_export.dart';
+import 'dart:math' as math;
+import 'package:http/http.dart' as http;
 
-  @override
-  State<SpiningWheel> createState() => _SpiningWheel();
+class WheelItem {
+  final int value;
+  double weight;
+  String label;
+  String color;
+
+  WheelItem(
+      {required this.value,
+      this.label = '',
+      this.weight = 1.0,
+      this.color = ''});
 }
 
-class _SpiningWheel extends State<SpiningWheel>
+class WheelFortune extends StatefulWidget {
+  const WheelFortune({Key? key}) : super(key: key);
+
+  @override
+  State<WheelFortune> createState() => _WheelFortuneState();
+}
+
+class _WheelFortuneState extends State<WheelFortune>
     with SingleTickerProviderStateMixin {
-  // Data
-  List<double> sectors = [
-    100,
-    1750,
-    2500,
-    500,
-    2000,
-    1250,
-    200,
-    750,
-    1500,
-    1000
-  ]; // sectors on the wheel
-  int randomSectorIndex = -1; // any index on sectors
-  List<double> sectorRadians = []; // sector degrees/radians
-  double angle = 0; // angle in radians to spin
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  bool status = false;
+  List<WheelItem> items = [];
+  int numberOfSections = 10;
+  int? result;
+  bool isSpinning = false;
+  String judul = '';
+  String ketentuan = '';
+  int chances = 0;
 
-  // Other data
-  bool spinning = false; // whether currently spinning or not
-  int earnedValue = 0; // currently earned value
-  double totalEarnings = 0; // all earnings in total
-  int spins = 0; // number of times of spinning so far
-  int chances = 0; // number of chances the user has to spin
-
-  // Random object to help generate any random int
-  math.Random random = math.Random();
-
-  // Spin animation controller
-  late AnimationController controller;
-  // Animation
-  late Animation<double> animation;
-
-  // Initial setup
   @override
   void initState() {
     super.initState();
 
-    // Fetch chance from LocalData
-    _getChance();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializeWheel();
+    });
+  }
 
-    // Generate sector radians / fill the list
-    generateSectorRadians();
-
-    // Animation controller
-    controller = AnimationController(
+  Future<void> _initializeWheel() async {
+    _controller = AnimationController(
+      duration: const Duration(seconds: 3),
       vsync: this,
-      duration: const Duration(milliseconds: 3600), // 3.6 sec
     );
 
-    // The tween
-    Tween<double> tween = Tween<double>(begin: 0, end: 1);
-
-    // The curve behavior
-    CurvedAnimation curve = CurvedAnimation(
-      parent: controller,
-      curve: Curves.decelerate,
+    _animation = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
     );
+    items.clear();
+    await getData();
+    await Future.delayed(Duration(milliseconds: 500));
 
-    // Animation tween
-    animation = tween.animate(curve);
+    if (mounted) Navigator.of(context).pop();
+  }
 
-    // Rebuild the screen as animation continues
-    controller.addListener(() {
-      // Only when animation complete
-      if (controller.isCompleted) {
-        // Rebuild
+  Future<void> getData() async {
+    final response = await http
+        .get(Uri.parse(API.BASE_URL + '/api/poin/get-wheel'))
+        .timeout(Duration(seconds: 30));
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body)['data'];
+      final chance = await LocalData.getData('chance');
+      if (mounted) {
         setState(() {
-          // Record stats
-          // Update status bool
-          spinning = false;
+          chances = int.parse(chance);
+          judul = data['name'] ?? '';
+          ketentuan = data['description'] ?? '';
+          for (var item in data['section']) {
+            items.add(WheelItem(
+                value: (item['value'] is int
+                    ? item['value']
+                    : int.parse(item['value'])),
+                label: (item['label'] is String
+                    ? item['label']
+                    : item['label'].toString()),
+                weight: (item['weight'] is double
+                    ? item['weight']
+                    : double.parse(item['weight'])),
+                color: (item['color'] is String
+                    ? item['color']
+                    : item['color'].toString())));
+            status = true;
+          }
         });
-        // Show pop-up with the earned value after 4 seconds
-        earnedValue =
-            (sectors[sectors.length - (randomSectorIndex + 1)]).toInt();
-        _showWinDialog();
       }
-    });
+    } else {
+      setState(() {
+        status = false;
+      });
+    }
   }
 
-  // Dispose controller after use
-  @override
-  void dispose() {
-    super.dispose();
-    controller.dispose();
+  int _getWeightedRandomIndex() {
+    double totalWeight = items.fold(0, (sum, item) => sum + item.weight);
+    double random = math.Random().nextDouble() * totalWeight;
+
+    double cumulativeWeight = 0;
+    for (int i = 0; i < items.length; i++) {
+      cumulativeWeight += items[i].weight;
+      if (random <= cumulativeWeight) {
+        return i;
+      }
+    }
+    return 0;
   }
 
-  // Fetch chances from LocalData
-  Future<void> _getChance() async {
-    int chance =
-        int.parse(await LocalData.getData('chance')); // Default to 0 if not set
+  void _spin() {
+    if (isSpinning) return;
+
     setState(() {
-      chances = chance;
+      isSpinning = true;
+      result = null;
+    });
+
+    int targetIndex = _getWeightedRandomIndex();
+    double sectionAngle = 2 * math.pi / items.length;
+    double targetAngle = (targetIndex * sectionAngle) + (sectionAngle / 2);
+
+    double totalRotation = (math.pi * 2 * 5) + (4 * math.pi - targetAngle);
+
+    _animation = Tween<double>(
+      begin: 0,
+      end: totalRotation,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    ));
+
+    _controller.forward(from: 0).then((_) {
+      _showWinDialog();
+      setState(() {
+        result = items[targetIndex].value;
+        isSpinning = false;
+      });
+      _controller.reset();
     });
   }
 
-  // Build method
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.brown,
-      body: _body(),
+  void _showWinDialog() {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Congratulations!"),
+          content: Text("You Won: ${(result)} Point"),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                if (await LocalData.containsKey('point')) {
+                  final poin = await LocalData.getData('point');
+                  final totalPoin = result! + int.parse(poin);
+                  LocalData.saveData('point', totalPoin.toString());
+                  LocalData.saveData('max_point', totalPoin.toString());
+                }
+                Navigator.of(context).pop(); // Close the pop-up
+              },
+              child: const Text("OK"),
+            ),
+          ],
+        );
+      },
     );
+
+    _updatePointsInDatabase();
   }
 
-  // Body
-  Widget _body() {
-    return Container(
-      height: double.infinity,
-      width: double.infinity,
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: NetworkImage(
-              "https://i.pinimg.com/736x/e7/3a/b8/e73ab8cbf6752d9523558f9c2c63da78.jpg"),
-          fit: BoxFit.cover,
+  Future<void> _updatePointsInDatabase() async {
+    try {
+      final username = await LocalData.getData('user');
+      int points = result!;
+
+      // Send data to the server
+      final response = await API.basePost(
+          '/api/poin/earn-point',
+          {
+            'username': username,
+            'points': points,
+            'deskripsi': 'Anda Mendapatkan $points Point dari Spining Wheel',
+            'date': DateTime.now().toString(),
+          },
+          {'Content-Type': 'application/json'},
+          true,
+          (result, error) {});
+    } catch (e) {
+      print('Error updating points: $e');
+    }
+  }
+
+  Widget _spiningTitle() {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: Container(
+        margin: const EdgeInsets.only(left: 20, top: 50, right: 20),
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(8)),
+          border: Border.all(
+            color: Colors.yellowAccent,
+            width: 2,
+          ),
+          gradient: const LinearGradient(
+            colors: [
+              Color.fromARGB(255, 91, 0, 107),
+              Color.fromARGB(255, 235, 42, 203),
+            ],
+            begin: Alignment.bottomLeft,
+            end: Alignment.topRight,
+          ),
         ),
-      ),
-      child: _SpiningContent(), // Content
-    );
-  }
-
-  Widget _SpiningContent() {
-    return SingleChildScrollView(
-      child: Column(
-        children: [
-          _spiningTitle(),
-          SizedBox(height: 10),
-          _spiningWheel(),
-          SizedBox(height: 10),
-          _chanceRemaining(),
-        ],
-      ),
-    );
-  }
-
-  Widget _spendingInfoButton() {
-    return Container(
-      child: IconButton(
-        onPressed: _showSpendingInfoDialog,
-        icon: const Icon(
-          Icons.info_outline,
-          color: Colors.white,
-          size: 34,
-        ),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.transparent,
-          shape: CircleBorder(),
-          elevation: 5,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              judul,
+              style: TextStyle(
+                fontSize: 19,
+                color: Colors.yellowAccent,
+              ),
+            ),
+            _spendingInfoButton(),
+          ],
         ),
       ),
     );
@@ -180,7 +249,7 @@ class _SpiningWheel extends State<SpiningWheel>
             children: [
               const Icon(
                 Icons.info_outline,
-                color: CupertinoColors.systemYellow, // Blue
+                color: Colors.yellowAccent, // Blue
                 size: 30,
               ),
               const SizedBox(width: 10),
@@ -189,7 +258,7 @@ class _SpiningWheel extends State<SpiningWheel>
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: CupertinoColors.systemYellow, // Blue
+                  color: Colors.yellowAccent, // Blue
                 ),
               ),
             ],
@@ -212,17 +281,8 @@ class _SpiningWheel extends State<SpiningWheel>
                 ),
                 child: Column(
                   children: [
-                    const Text(
-                      "Setiap pembelanjaan \nRp 500.000",
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const Text(
-                      "mendapat 1x kesempatan undi point!",
+                    Text(
+                      ketentuan,
                       style: TextStyle(
                         fontSize: 16,
                         color: Colors.white,
@@ -263,93 +323,19 @@ class _SpiningWheel extends State<SpiningWheel>
     );
   }
 
-  Widget _spiningWheel() {
-    return Center(
-      child: Container(
-        padding: const EdgeInsets.only(top: 20, left: 5),
-        width: MediaQuery.of(context).size.width * 0.9,
-        height: MediaQuery.of(context).size.height * 0.5,
-        decoration: const BoxDecoration(
-            image: DecorationImage(
-          fit: BoxFit.contain,
-          image: AssetImage("assets/images/belt.png"),
-        )),
-        // Use animated builder for spinning
-        child: InkWell(
-          child: AnimatedBuilder(
-            animation: animation,
-            builder: (context, child) {
-              return Transform.rotate(
-                angle: controller.value *
-                    angle, //  angle and controller value in action
-                child: Container(
-                  margin:
-                      EdgeInsets.all(MediaQuery.of(context).size.width * 0.07),
-                  decoration: const BoxDecoration(
-                      image: DecorationImage(
-                    fit: BoxFit.contain,
-                    image: AssetImage("assets/images/wheelrupiah.png"),
-                  )),
-                ),
-              );
-            },
-          ),
-          onTap: () {
-            // If not spinning and there are chances left, spin
-            setState(() {
-              if (!spinning && chances > 0) {
-                spin(); // A method to spin the wheel
-                spinning = true; // Now spinning status
-                chances--; // Decrease the chances
-                LocalData.saveData(
-                    'chance', chances.toString()); // Save the updated chances
-              } else if (chances == 0) {
-                // Show a message if no chances left
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('No chances left!')),
-                );
-              }
-            });
-          },
+  Widget _spendingInfoButton() {
+    return Container(
+      child: IconButton(
+        onPressed: _showSpendingInfoDialog,
+        icon: const Icon(
+          Icons.info_outline,
+          color: Colors.white,
+          size: 24,
         ),
-      ),
-    );
-  }
-
-  // Spinning title
-  Widget _spiningTitle() {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: Container(
-        margin: const EdgeInsets.only(left: 20, top: 50, right: 20),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-        decoration: BoxDecoration(
-          borderRadius: const BorderRadius.all(Radius.circular(8)),
-          border: Border.all(
-            color: CupertinoColors.systemYellow,
-            width: 2,
-          ),
-          gradient: const LinearGradient(
-            colors: [
-              Color.fromARGB(255, 91, 0, 107),
-              Color.fromARGB(255, 235, 42, 203),
-            ],
-            begin: Alignment.bottomLeft,
-            end: Alignment.topRight,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Wheel Undian",
-              style: TextStyle(
-                fontSize: 34,
-                color: CupertinoColors.systemYellow,
-              ),
-            ),
-            _spendingInfoButton(),
-          ],
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shape: CircleBorder(),
+          elevation: 5,
         ),
       ),
     );
@@ -362,85 +348,171 @@ class _SpiningWheel extends State<SpiningWheel>
         "Remaining Chances: $chances",
         style: TextStyle(
           fontSize: 20,
-          color: CupertinoColors.systemYellow,
+          color: Colors.orangeAccent,
           fontWeight: FontWeight.bold,
         ),
       ),
     );
   }
 
-  void generateSectorRadians() {
-    // Radian for 1 sector
-    double sectorRadian = 2 * math.pi / sectors.length; // ie.360 degrees = 2xpi
-
-    // Fill the radians list
-    for (int i = 0; i < sectors.length; i++) {
-      sectorRadians.add((i + 1) * sectorRadian);
-    }
-  }
-
-  void spin() {
-    // Spinning here
-    randomSectorIndex =
-        random.nextInt(sectors.length); // get random sector index
-    double randomRadian = generateRandomRadianToSpinTo();
-    controller.reset(); // reset any previous values
-    angle = randomRadian;
-    controller.forward(); // spin
-  }
-
-  double generateRandomRadianToSpinTo() {
-    return (2 * math.pi * sectors.length) + sectorRadians[randomSectorIndex];
-  }
-
-  // Show a pop-up dialog with the winning value
-  void _showWinDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Congratulations!"),
-          content: Text("You Won: ${(earnedValue)} Point"),
-          actions: [
-            TextButton(
-              onPressed: () async {
-                if (await LocalData.containsKey('point')) {
-                  final poin = await LocalData.getData('point');
-                  final totalPoin = earnedValue + int.parse(poin);
-                  LocalData.saveData('point', totalPoin.toString());
-                  LocalData.saveData('max_point', totalPoin.toString());
-                }
-                Navigator.of(context).pop(); // Close the pop-up
-              },
-              child: const Text("OK"),
-            ),
-          ],
-        );
-      },
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        height: double.infinity,
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: NetworkImage(
+                "https://i.pinimg.com/736x/e7/3a/b8/e73ab8cbf6752d9523558f9c2c63da78.jpg"),
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: SingleChildScrollView(
+          child: status && (mounted)
+              ? Column(
+                  children: [
+                    _spiningTitle(),
+                    SizedBox(height: 10),
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.only(
+                            top: 38, left: 30, right: 30, bottom: 20),
+                        width: MediaQuery.of(context).size.width * 0.9,
+                        height: MediaQuery.of(context).size.height * 0.5,
+                        decoration: const BoxDecoration(
+                            image: DecorationImage(
+                          fit: BoxFit.contain,
+                          image: AssetImage("assets/images/belt.png"),
+                        )),
+                        child: InkWell(
+                          onTap: () {
+                            if (!isSpinning && chances > 0) {
+                              _spin();
+                              isSpinning = true;
+                              chances--;
+                              LocalData.saveData('chance', chances.toString());
+                            } else if (chances == 0) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('No chances left!')),
+                              );
+                            }
+                          },
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              AnimatedBuilder(
+                                animation: _animation,
+                                builder: (context, child) {
+                                  return Transform.rotate(
+                                    angle: _animation.value,
+                                    child: CustomPaint(
+                                      size: const Size(300, 300),
+                                      painter: WheelPainter(items: items),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                    SizedBox(height: 10),
+                    _chanceRemaining(),
+                  ],
+                )
+              : Container(),
+        ),
+      ),
     );
-
-    _updatePointsInDatabase();
   }
+}
 
-  Future<void> _updatePointsInDatabase() async {
-    try {
-      final username =
-          await LocalData.getData('user'); // Replace with actual user ID
-      int points = earnedValue;
+class WheelPainter extends CustomPainter {
+  final List<WheelItem> items;
 
-      // Send data to the server
-      final response = await API.basePost(
-          '/api/poin/earn-point',
-          {
-            'username': username,
-            'points': points,
-            'deskripsi': 'Anda Mendapatkan $points Point dari Spining Wheel',
-          },
-          {'Content-Type': 'application/json'},
-          true,
-          (result, error) {});
-    } catch (e) {
-      print('Error updating points: $e');
+  WheelPainter({required this.items});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = math.min(size.width, size.height) / 2;
+    final sectionAngle = 2 * math.pi / items.length;
+
+    final paint = Paint()..style = PaintingStyle.fill;
+
+    // Colors for sections
+
+    for (int i = 0; i < items.length; i++) {
+      final startAngle = i * sectionAngle - math.pi / 2;
+      paint.color = Color(int.parse(items[i].color.replaceFirst('#', '0xff')));
+
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sectionAngle,
+        true,
+        paint,
+      );
+
+      // Draw border
+      final borderPaint = Paint()
+        ..color = Colors.white
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
+
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        startAngle,
+        sectionAngle,
+        true,
+        borderPaint,
+      );
+
+      // Draw text
+      final textAngle = startAngle + sectionAngle / 2;
+      final textRadius = radius * 0.7;
+      final textX = center.dx + textRadius * math.cos(textAngle);
+      final textY = center.dy + textRadius * math.sin(textAngle);
+
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: '${items[i].value}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            shadows: [
+              Shadow(
+                blurRadius: 3,
+                color: Colors.black45,
+                offset: Offset(1, 1),
+              ),
+            ],
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(
+          textX - textPainter.width / 2,
+          textY - textPainter.height / 2,
+        ),
+      );
     }
+
+    // Draw center circle
+    paint.color = Colors.white;
+    canvas.drawCircle(center, 20, paint);
+    paint.color = Colors.grey.shade300;
+    canvas.drawCircle(center, 15, paint);
   }
+
+  @override
+  bool shouldRepaint(WheelPainter oldDelegate) => true;
 }

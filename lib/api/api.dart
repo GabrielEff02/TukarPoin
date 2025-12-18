@@ -14,7 +14,9 @@ class API {
   // static String BASE_URL = 'https://dharmaguna.id/tokool';
 
   // static String BASE_URL = 'https://tiaraapkpoin.cloud/tiaraapkpoin/public';
-  static String BASE_URL = 'http://modisyst.com/tiaraapkpoin/public';
+  // static String BASE_URL = 'http://modisyst.com/tiaraapkpoin/public';
+  // static String BASE_URL = '202.10.38.198/tiaraapkpoin/public';
+  static String BASE_URL = 'https://tiaraapkpoin.cloud/tiaraapkpoin/public';
 
   static basePost(
       String module,
@@ -52,6 +54,7 @@ class API {
         } else if (responseCode == 401 ||
             responseCode == 403 ||
             responseCode == 401 ||
+            responseCode == 429 ||
             responseCode == 403) {
           callback(null, mapJson);
         } else {
@@ -802,11 +805,11 @@ class API {
           mapJson['code'] == 422) {
         callback(null, mapJson);
       } else {
-        mapError.putIfAbsent('message', () => 'Gagal memuat data.');
+        mapError.putIfAbsent('message', () => 'Gagal memuat data. $mapError');
         callback(null, mapError);
       }
     } catch (e) {
-      mapError.putIfAbsent('message', () => 'Gagal memuat data.');
+      mapError.putIfAbsent('message', () => 'Gagal memuat data. $e');
       callback(null, mapError);
     }
   }

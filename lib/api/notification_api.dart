@@ -1,6 +1,5 @@
+/*import 'package:e_commerce/screen/auth/login_screen.dart';
 import 'dart:convert';
-
-import 'package:e_commerce/screen/auth/login_screen.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:get/get.dart';
@@ -83,4 +82,5 @@ class NotificationApi {
     notificationId = int.parse(message.data['id']);
     Get.to(LoginScreen());
   }
-}
+}*/
+// Notification API is currently disabled.

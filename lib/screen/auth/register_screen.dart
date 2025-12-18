@@ -20,6 +20,12 @@ class _LoginScreenState extends State<RegisterScreen> {
   AuthController registercontroller = AuthController();
   String confirmPasswordCheck = '';
   String passwordCheck = '';
+  initState() {
+    super.initState();
+    passwordCheck =
+        'Password harus minimal 8 karakter dan mengandung huruf besar, huruf kecil, angka, & simbol (@\$!%*?&)!';
+  }
+
   @override
   Widget build(BuildContext context) {
     var size = MediaQuery.of(context).size;
@@ -55,7 +61,11 @@ class _LoginScreenState extends State<RegisterScreen> {
               // Email Field
               buildTextField('Nama', registercontroller.edtNama, 50,
                   keyboardType: TextInputType.name,
-                  icon: Icon(Icons.person, color: Colors.blue)),
+                  icon: Icon(Icons.person, color: Colors.blue),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'[a-zA-Z ]')),
+                    LengthLimitingTextInputFormatter(50)
+                  ]),
               SizedBox(height: 20),
               buildTextField('Email', registercontroller.edtEmail, 50,
                   keyboardType: TextInputType.emailAddress,
@@ -74,7 +84,7 @@ class _LoginScreenState extends State<RegisterScreen> {
               SizedBox(height: 20),
 
               // Password Field
-              buildTextField('Kata Sandi', registercontroller.edtPass, 8,
+              buildTextField('Kata Sandi', registercontroller.edtPass, 20,
                   obscureText: true,
                   icon: Icon(Icons.lock, color: Colors.orange), check: () {
                 String password = registercontroller.edtPass.text;
@@ -85,8 +95,11 @@ class _LoginScreenState extends State<RegisterScreen> {
                 } else if (password.length < 8) {
                   setState(() {
                     passwordCheck = 'Password harus minimal 8 karakter';
-                    if (!RegExp(r'[A-Za-z]').hasMatch(password)) {
-                      passwordCheck += ' & mengandung huruf';
+                    if (!RegExp(r'[a-z]').hasMatch(password)) {
+                      passwordCheck += ' & mengandung huruf kecil';
+                    }
+                    if (!RegExp(r'[A-Z]').hasMatch(password)) {
+                      passwordCheck += ' & mengandung huruf besar';
                     }
                     if (!RegExp(r'\d').hasMatch(password)) {
                       passwordCheck += ' & mengandung angka';
@@ -97,11 +110,11 @@ class _LoginScreenState extends State<RegisterScreen> {
                     passwordCheck += '!';
                   });
                 } else if (!RegExp(
-                        r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
+                        r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
                     .hasMatch(password)) {
                   setState(() {
                     passwordCheck =
-                        'Password harus mengandung huruf, angka, dan simbol (@\$!%*?&)!';
+                        'Password harus mengandung huruf besar, huruf kecil, angka, dan simbol (@\$!%*?&)!';
                   });
                 } else {
                   setState(() {
@@ -115,8 +128,8 @@ class _LoginScreenState extends State<RegisterScreen> {
 
               SizedBox(height: 20),
               // Confirm Password Field
-              buildTextField(
-                  'Konfirmasi Kata Sandi', registercontroller.edtConfirmPass, 8,
+              buildTextField('Konfirmasi Kata Sandi',
+                  registercontroller.edtConfirmPass, 20,
                   icon: Icon(Icons.lock_outline, color: Colors.green),
                   obscureText: true, check: () {
                 String password = registercontroller.edtPass.text;
@@ -146,33 +159,36 @@ class _LoginScreenState extends State<RegisterScreen> {
                   // Validate fields
                   String email = registercontroller.edtEmail.text.trim();
                   if (email.isEmpty) {
-                    DialogConstant.alertError('Email tidak boleh kosong');
+                    DialogConstant.alertError(
+                        'Pendaftaran gagal', 'Email tidak boleh kosong');
                     return;
                   }
                   if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(email)) {
-                    DialogConstant.alertError('Masukkan email yang valid');
+                    DialogConstant.alertError(
+                        'Pendaftaran gagal', 'Masukkan email yang valid');
                     return;
                   }
 
                   String phoneNumber = registercontroller.edtPhone.text.trim();
                   if (phoneNumber.isEmpty) {
-                    DialogConstant.alertError(
+                    DialogConstant.alertError('Pendaftaran gagal',
                         'Nomor Telepon tidak boleh kosong');
                     return;
                   }
                   if (phoneNumber.length < 11 || phoneNumber.length > 13) {
-                    DialogConstant.alertError(
+                    DialogConstant.alertError('Pendaftaran gagal',
                         'Nomor Telepon harus antara 11 dan 13 digit');
                     return;
                   }
 
                   String password = registercontroller.edtPass.text.trim();
                   if (password.isEmpty) {
-                    DialogConstant.alertError('Kata Sandi tidak boleh kosong');
+                    DialogConstant.alertError(
+                        'Pendaftaran gagal', 'Kata Sandi tidak boleh kosong');
                     return;
                   }
                   if (password.length < 8) {
-                    DialogConstant.alertError(
+                    DialogConstant.alertError('Pendaftaran gagal',
                         'Kata Sandi harus minimal 8 karakter');
                     return;
                   }
@@ -180,12 +196,12 @@ class _LoginScreenState extends State<RegisterScreen> {
                   String confirmPassword =
                       registercontroller.edtConfirmPass.text.trim();
                   if (confirmPassword.isEmpty) {
-                    DialogConstant.alertError(
+                    DialogConstant.alertError('Pendaftaran gagal',
                         'Konfirmasi Kata Sandi tidak boleh kosong');
                     return;
                   }
                   if (password != confirmPassword) {
-                    DialogConstant.alertError(
+                    DialogConstant.alertError('Pendaftaran gagal',
                         'Kata Sandi dan Konfirmasi tidak cocok');
                     return;
                   }
@@ -195,13 +211,17 @@ class _LoginScreenState extends State<RegisterScreen> {
                     callback: (result, error) {
                       if (result != null && result['error'] != true) {
                         Get.back();
-                        DialogConstant.alertError('Pendaftaran Berhasil');
+                        DialogConstant.showSuccessAlert(
+                            title: 'Selamat Pendaftaran Berhasil',
+                            message: 'Silahkan login menggunakan data baru');
                       }
                       if (result['error'] == true) {
-                        DialogConstant.alertError(result['message']);
+                        DialogConstant.alertError(
+                            'Pendaftaran gagal', result['message']);
                       }
                       if (error != null) {
-                        DialogConstant.alertError('Pendaftaran Gagal');
+                        DialogConstant.alertError(
+                            'Pendaftaran gagal', 'Coba beberapa saat lagi');
                       }
                     },
                   );

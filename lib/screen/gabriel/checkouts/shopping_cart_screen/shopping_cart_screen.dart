@@ -1,11 +1,11 @@
 import 'dart:convert';
 
+// import 'package:e_commerce/screen/ocr_ktp/view/home.dart';
 import 'package:get/get.dart';
 
 import '../../checkouts/shopping_cart_screen/shopping_cart_controller/shopping_cart_controller.dart';
 import '../../../../constant/dialog_constant.dart';
 import '../../core/app_export.dart';
-import 'dart:async';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 
@@ -22,36 +22,43 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
   late num totalQuantityFinal = 0;
   late num totalPriceFinal = 0;
   late int point;
-  String namaCabang = '';
+  List<Map<String, dynamic>> companyCode = [];
+  String selectedCompany = 'all';
   bool isChecked = false;
 
   @override
   void initState() {
-    getPoint();
-    getCompanName();
     super.initState();
-  }
-
-  void getPoint() async {
-    final points = await LocalData.getData('point');
-    setState(() {
-      point = int.parse(points);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      loadInitialData();
     });
   }
 
-  void getCompanName() async {
-    final compan = await LocalData.getData('compan_code');
+  Future<void> loadInitialData() async {
+    DialogConstant.loading(context, 'Loading...');
+    await getPoint();
+    await getCompan();
+    Get.back();
+  }
+
+  Future<void> getCompan() async {
     try {
       final response =
           await http.get(Uri.parse('${API.BASE_URL}/api/poin/company'));
+
       if (response.statusCode == 200) {
         // Mengonversi JSON response menjadi List<Map<String, dynamic>>
         List<dynamic> jsonData = json.decode(response.body);
-        print(jsonData
-            .firstWhere((companies) => companies['compan_code'] == compan));
         setState(() {
-          namaCabang = jsonData.firstWhere(
-              (companies) => companies['compan_code'] == compan)['name'];
+          companyCode = [
+            {'compan_code': 'all', 'name': 'Pilih Cabang'}
+          ];
+          companyCode.addAll(jsonData.map((outlet) {
+            return {
+              'compan_code': outlet['compan_code'],
+              'name': outlet['name']
+            };
+          }).toList());
         });
       } else {
         throw Exception('Failed to load data');
@@ -61,12 +68,19 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
     }
   }
 
+  Future<void> getPoint() async {
+    final points = await LocalData.getData('point');
+    setState(() {
+      point = int.parse(points);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          "Shopping Cart",
+          "Keranjang Belanja",
           style: CustomTextStyle.titleLargeBlack900,
         ),
         actions: [
@@ -74,8 +88,10 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
               onPressed: () {
                 showAreYouSureDialog(
                     context,
-                    () =>
-                        submitItems(widget.items, totalPriceFinal, isChecked));
+                    () => (selectedCompany != 'all')
+                        ? submitItems(widget.items, totalPriceFinal, isChecked)
+                        : DialogConstant.alertError('Transaksi Gagal',
+                            'Harap pilih cabang pengambilan'));
               },
               icon: Icon(
                 Icons.check,
@@ -88,13 +104,6 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
         padding: EdgeInsets.symmetric(horizontal: 16.v, vertical: 10.v),
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8.0),
-              child: Text(
-                namaCabang,
-                style: TextStyle(fontWeight: FontWeight.w900),
-              ),
-            ),
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -117,44 +126,28 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
 
       Map<String, dynamic> postTransaction = {
         'total_amount': totalPriceFinal,
-        'is_delivery': isCheked
+        'is_delivery': 0,
+        'cabang_ambil': selectedCompany,
       };
-      if (await LocalData.containsKey('detailKTP')) {
-        ShoppingCartController().postTransactions(
-          context: context,
-          callback: (result, error) {
-            if (result != null && !result.containsKey('error')) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  backgroundColor: const Color.fromARGB(88, 0, 0, 0),
-                  content: Row(
-                    children: [
-                      Icon(
-                        Icons.check,
-                        color: Colors.green, // ganti warna sukses
-                      ),
-                      SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          'Transaction Success!',
-                          style: TextStyle(color: Colors.white),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            } else {
-              final msg = result?['error'] ?? error.toString();
-              DialogConstant.alertError(msg);
-            }
-          },
-          postTransaction: postTransaction,
-          postTransactionDetail: items,
-        );
-      } else {
-        // Get.to(KtpOCR(postTransaction: postTransaction, postDetail: items));
-      }
+      // if (await LocalData.containsKey('detailKTP')) {
+      ShoppingCartController().postTransactions(
+        context: context,
+        callback: (result, error) {
+          if (result != null && !result.containsKey('error')) {
+            DialogConstant.showSuccessAlert(
+                title: 'Transaksi Berhasil',
+                message: 'Selamat anda berhasil menukarkan poin');
+          } else {
+            final msg = result?['error'] ?? error.toString();
+            DialogConstant.alertError('Transaksi Gagal', msg);
+          }
+        },
+        postTransaction: postTransaction,
+        postTransactionDetail: items,
+      );
+      // } else {
+      //   Get.to(KtpOCR(postTransaction: postTransaction, postDetail: items));
+      // }
     }
   }
 
@@ -210,27 +203,67 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
           child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Checkbox(
-                      value: isChecked,
-                      onChanged: (bool? newValue) {
+                    Text('Cabang Pengambilan:',
+                        style: CustomTextStyle.titleMediumBlack900),
+                  ],
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    DropdownButton<String>(
+                      hint: Text("Pilih Perusahaan"),
+                      value: selectedCompany,
+                      items: companyCode.map((company) {
+                        return DropdownMenuItem<String>(
+                          value:
+                              company["compan_code"], // Menyimpan company_code
+                          child: Text(company["name"]!), // Menampilkan name
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
                         setState(() {
-                          isChecked = newValue ?? false;
+                          selectedCompany = newValue!;
                         });
+                        LocalData.saveData('compan_code', selectedCompany);
                       },
-                      activeColor: Colors.blue, // Warna saat checkbox dipilih
-                    ),
-                    Text(
-                      "Apakah pesanan anda ingin dikirim?",
-                      style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.black87,
-                          fontWeight: FontWeight.w900),
                     ),
                   ],
                 ),
+              ],
+            ),
+          ),
+        ),
+        Card(
+          margin: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Column(
+              children: [
+                // Row(
+                //   children: [
+                //     Checkbox(
+                //       value: isChecked,
+                //       onChanged: (bool? newValue) {
+                //         setState(() {
+                //           isChecked = newValue ?? false;
+                //         });
+                //       },
+                //       activeColor: Colors.blue, // Warna saat checkbox dipilih
+                //     ),
+                //     Text(
+                //       "Apakah pesanan anda ingin dikirim?",
+                //       style: TextStyle(
+                //           fontSize: 12,
+                //           color: Colors.black87,
+                //           fontWeight: FontWeight.w900),
+                //     ),
+                //   ],
+                // ),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [

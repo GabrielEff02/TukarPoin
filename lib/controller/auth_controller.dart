@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:e_commerce/api/notification_api.dart';
+import 'package:e_commerce/screen/gabriel/core/app_export.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import '../api/api.dart';
@@ -36,9 +37,10 @@ class AuthController extends GetxController {
 
   validation({BuildContext? context, void callback(result, exception)?}) {
     if (edtPhone.text == '') {
-      DialogConstant.alertError('Nomor Telephone tidak boleh kosong!');
+      DialogConstant.alertError(
+          'Login Gagal', 'Nomor Telephone tidak boleh kosong!');
     } else if (edtPass.text == '') {
-      DialogConstant.alertError('Password tidak boleh kosong!');
+      DialogConstant.alertError('Login Gagal', 'Password tidak boleh kosong!');
     } else {
       postLogin(
           context: context,
@@ -55,9 +57,10 @@ class AuthController extends GetxController {
     header['Content-Type'] = 'application/json';
     post['phone'] = edtPhone.text;
     post['password'] = edtPass.text;
-    post['fcmToken'] = NotificationApi.fCMToken == ''
-        ? 'dawbhdbawjbdawjbdhwbawjbawjbdja'
-        : NotificationApi.fCMToken;
+    // post['fcmToken'] = NotificationApi.fCMToken == ''
+    //     ? 'dawbhdbawjbdawjbdhwbawjbawjbdja'
+    //     : NotificationApi.fCMToken;
+    post['fcmToken'] = 'dawbhdbawjbdawjbdhwbawjbawjbdja';
 
     bool isCompleted = false;
 
@@ -71,7 +74,7 @@ class AuthController extends GetxController {
       }
     });
 
-    API.basePost('/api/poin/login', post, header, true, (result, error) {
+    API.basePost('/api/poin/login', post, header, true, (result, error) async {
       if (!isCompleted) {
         isCompleted = true;
         timeoutTimer
@@ -103,12 +106,13 @@ class AuthController extends GetxController {
             LocalData.saveData('address', dataUser[0]['default_address'] ?? "");
             LocalData.saveData('phone', dataUser[0]['phone'] ?? "");
             LocalData.saveData('point', dataUser[0]['point'].toString());
+            LocalData.saveData('vip', dataUser[0]['vip'].toString());
+            LocalData.saveData('barcode', dataUser[0]['barcode'].toString());
             LocalData.saveData(
                 'chance', dataUser[0]['spin_chance'].toString() ?? "");
             LocalData.saveData(
                 'profile_picture', dataUser[0]['profile_path'] ?? "");
-            LocalData.removeData('compan_code');
-
+            LocalData.saveData('compan_code', 'all');
             callback!(result, null);
           } catch (e) {
             print('Error processing login data: $e');
@@ -127,22 +131,28 @@ class AuthController extends GetxController {
   validationRegister(
       {BuildContext? context, void callback(result, exception)?}) {
     if (edtNama.text.isEmpty) {
-      DialogConstant.alertError('Nama tidak boleh kosong!');
+      DialogConstant.alertError(
+          'Pendaftaran Gagal', 'Nama tidak boleh kosong!');
     } else if (edtPhone.text.isEmpty) {
-      DialogConstant.alertError('Nomor Telephone tidak boleh kosong!');
+      DialogConstant.alertError(
+          'Pendaftaran Gagal', 'Nomor Telephone tidak boleh kosong!');
     } else if (edtEmail.text.isEmpty) {
-      DialogConstant.alertError('Email tidak boleh kosong!');
+      DialogConstant.alertError(
+          'Pendaftaran Gagal', 'Email tidak boleh kosong!');
     } else if (edtPass.text.isEmpty) {
-      DialogConstant.alertError('Password tidak boleh kosong!');
+      DialogConstant.alertError(
+          'Pendaftaran Gagal', 'Password tidak boleh kosong!');
     } else if (!RegExp(
             r'^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$')
         .hasMatch(edtPass.text)) {
-      DialogConstant.alertError(
+      DialogConstant.alertError('Pendaftaran Gagal',
           'Password harus minimal 8 karakter dan mengandung huruf, angka, serta simbol!');
     } else if (edtConfirmPass.text.isEmpty) {
-      DialogConstant.alertError('Konfirmasi Password tidak boleh kosong!');
+      DialogConstant.alertError(
+          'Pendaftaran Gagal', 'Konfirmasi Password tidak boleh kosong!');
     } else if (edtPass.text != edtConfirmPass.text) {
-      DialogConstant.alertError('Password dan Konfirmasi Password tidak sama!');
+      DialogConstant.alertError(
+          'Pendaftaran Gagal', 'Password dan Konfirmasi Password tidak sama!');
     } else {
       postRegister(
           context: context,
@@ -177,54 +187,20 @@ class AuthController extends GetxController {
     });
   }
 
-  validationVerify({BuildContext? context, void callback(result, exception)?}) {
-    if (verifyCode.text == '') {
-      Get.back();
-      DialogConstant.alertError('Kode verifikasi kosong!');
-    } else {
-      postVerifyWhatsapp(
-          context: context,
-          callback: (result, error) => callback!(result, error));
-    }
-  }
-
-  sendVerifyCode(
-      {BuildContext? context,
-      void callback(result, exception)?,
-      Map<String, dynamic>? post}) async {
-    var header = new Map<String, String>();
-    var post = Map<String, dynamic>();
-    header['Content-Type'] = 'application/json';
-    post['userx'] = await LocalData.getData('user');
-
-    DialogConstant.loading(context!, 'Mengirim kode Verifikasi...');
-
-    API.basePost('/api/poin/send-auth', post, header, true, (result, error) {
-      print(result);
-      print(error);
-      Get.back();
-      if (error != null) {
-        callback!(null, error);
-      }
-      if (result != null) {
-        callback!(result, null);
-      }
-    });
-  }
-
-  postVerifyWhatsapp(
+  sendOtpEmail(
       {BuildContext? context, void callback(result, exception)?}) async {
     var post = new Map<String, dynamic>();
     var header = new Map<String, String>();
 
     header['Content-Type'] = 'application/json';
-    post['userx'] = await LocalData.getData('user');
-    post['codex'] = verifyCode.text;
+    post['emailx'] = await LocalData.getData('email');
 
-    DialogConstant.loading(context!, 'Check Verification...');
+    DialogConstant.loading(context!, 'Sending OTP...');
 
-    API.basePost('/api/poin/get-verify', post, header, true, (result, error) {
+    API.basePost('/api/poin/send-auth-email', post, header, true,
+        (result, error) {
       Get.back();
+
       if (error != null) {
         callback!(null, error);
       }
@@ -234,35 +210,20 @@ class AuthController extends GetxController {
     });
   }
 
-  checkEmail({BuildContext? context, void callback(result, exception)?}) async {
+  sendOtpPhone(
+      {BuildContext? context, void callback(result, exception)?}) async {
     var post = new Map<String, dynamic>();
     var header = new Map<String, String>();
 
     header['Content-Type'] = 'application/json';
-    post['emailx'] = await LocalData.getData('email');
-    DialogConstant.loading(context!, 'Sending OTP...');
-    API.basePost('/api/poin/check-email', post, header, true, (result, error) {
-      Get.back();
-      if (error != null) {
-        callback!(null, error);
-      }
-      if (result != null) {
-        callback!(result, null);
-      }
-    });
-  }
-
-  sendOtpSMS({BuildContext? context, void callback(result, exception)?}) async {
-    var post = new Map<String, dynamic>();
-    var header = new Map<String, String>();
-
-    header['Content-Type'] = 'application/json';
-    post['emailx'] = await LocalData.getData('email');
+    post['phonex'] = await LocalData.getData('phone');
 
     DialogConstant.loading(context!, 'Sending OTP...');
 
-    API.basePost('/api/poin/send-auth', post, header, true, (result, error) {
+    API.basePost('/api/poin/send-auth-phone', post, header, true,
+        (result, error) {
       Get.back();
+
       if (error != null) {
         callback!(null, error);
       }
@@ -274,9 +235,7 @@ class AuthController extends GetxController {
 
   validationOtp({BuildContext? context, void callback(result, exception)?}) {
     if (otpCode.text == '') {
-      DialogConstant.alertError('Kode OTP kosong!');
-    } else if (changePass.text == '') {
-      DialogConstant.alertError('Password baru tidak boleh kosong!');
+      DialogConstant.alertError('Ganti Password Gagal', 'Kode OTP kosong!');
     } else {
       postOtpCode(
           context: context,
@@ -292,12 +251,13 @@ class AuthController extends GetxController {
     header['Content-Type'] = 'application/json';
     if (await LocalData.containsKey('user')) {
       post['userx'] = await LocalData.getData('user');
-    } else {
+    } else if ((await LocalData.containsKey('email'))) {
       post['emailx'] = await LocalData.getData('email');
+    } else {
+      post['phonex'] = await LocalData.getData('phone');
     }
     post['newpass'] = changePass.text;
     post['codex'] = otpCode.text;
-    print(post);
     DialogConstant.loading(context!, 'Verifying OTP..');
 
     API.basePost('/api/poin/get-verify', post, header, true, (result, error) {

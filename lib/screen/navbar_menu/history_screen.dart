@@ -1,5 +1,7 @@
 import 'dart:convert';
+import 'package:e_commerce/constant/dialog_constant.dart';
 import 'package:e_commerce/screen/gabriel/core/app_export.dart';
+import 'package:e_commerce/screen/navbar_menu/bukti_screen.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 
@@ -49,6 +51,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
               "status": item['status'],
               "name": item['name'],
               "is_delivery": item['is_delivery'],
+              "no_bukti": item['no_bukti'],
+              "waktu_ambil": item['waktu_ambil'],
+              "sudah_ambil": item['sudah_ambil'],
+              "tgl_ambil": item['tgl_ambil'],
               "keterangan": item['keterangan']
             };
           }).toList();
@@ -245,6 +251,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     int totalAmount = transaction["total_amount"];
     DateTime date = DateTime.parse(transaction["date"]);
     String formattedDate = DateFormat('dd MMM yyyy, HH:mm').format(date);
+    String formattedWaktuAmbil = '';
+    if (isNegative) {
+      DateTime waktuAmbil = DateTime.parse(transaction["waktu_ambil"].trim());
+      formattedWaktuAmbil = DateFormat('dd MMM yyyy').format(waktuAmbil);
+    }
 
     return Container(
       margin: EdgeInsets.only(bottom: 12),
@@ -265,7 +276,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
           borderRadius: BorderRadius.circular(16),
           onTap: () {
             if (isNegative) {
-              _showTransactionDetails(transaction['transaction_id']);
+              _showTransactionDetails(
+                  transaction['no_bukti'],
+                  transaction['transaction_id'],
+                  transaction['name'],
+                  transaction['sudah_ambil'] == 1 ? true : false,
+                  transaction['status']);
             }
           },
           child: Padding(
@@ -286,30 +302,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           color: Colors.grey[800],
                         ),
                       ),
-                      isNegative
-                          ? Column(
-                              children: [
-                                Text(
-                                  transaction['name'],
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[500],
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                                Text(
-                                  transaction['is_delivery'] == "1"
-                                      ? "Pesanan Dikirim"
-                                      : "Pesanan Diambil Sendiri",
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey[500],
-                                  ),
-                                ),
-                                SizedBox(height: 4),
-                              ],
-                            )
-                          : Container(),
+                      if (isNegative) ...[
+                        Text(
+                          transaction['name'],
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                        SizedBox(height: 4)
+                      ],
                       Text(
                         formattedDate,
                         style: TextStyle(
@@ -317,9 +319,25 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           color: Colors.grey[500],
                         ),
                       ),
-                      SizedBox(height: 8),
-                      _buildStatusChip(transaction["status"], isNegative,
-                          transaction['is_delivery'].toString()),
+                      SizedBox(height: 4),
+                      if (isNegative) ...[
+                        Text(
+                          'Tanggal Pengambilan: $formattedWaktuAmbil',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[500],
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Row(
+                          children: [
+                            _buildStatusChip(transaction["status"], isNegative,
+                                transaction['is_delivery'].toString()),
+                            SizedBox(width: 8),
+                            _buildPickupStatusChip(transaction["sudah_ambil"])
+                          ],
+                        )
+                      ],
                     ],
                   ),
                 ),
@@ -345,6 +363,34 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPickupStatusChip(int sudahAmbil) {
+    bool isPickedUp = sudahAmbil == 1;
+
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: isPickedUp
+            ? Colors.green[600]!.withOpacity(0.1)
+            : Colors.orange[600]!.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: isPickedUp
+              ? Colors.green[600]!.withOpacity(0.3)
+              : Colors.orange[600]!.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Text(
+        isPickedUp ? 'Sudah Diambil' : 'Belum Diambil',
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w500,
+          color: isPickedUp ? Colors.green[600] : Colors.orange[600],
         ),
       ),
     );
@@ -393,28 +439,31 @@ class _HistoryScreenState extends State<HistoryScreen> {
   Map<String, dynamic> _getStatusInfo(String status) {
     switch (status) {
       case '0':
-        return {'label': 'Berhasil', 'color': Colors.green[600]};
+        return {'label': 'Berhasil', 'color': Colors.blue[600]};
       case '1':
         return {'label': 'Ready', 'color': Colors.blue[600]};
       case '2':
         return {'label': 'Pengiriman', 'color': Colors.orange[600]};
       case '3':
-        return {'label': 'Selesai', 'color': Colors.purple[600]};
+        return {'label': 'Selesai', 'color': Colors.green[600]};
       default:
         return {'label': 'Unknown', 'color': Colors.grey[600]};
     }
   }
 
-  void _showTransactionDetails(int transactionId) {
+  void _showTransactionDetails(String? noBukti, int transactionId,
+      String cabang, bool sudahAmbil, String status) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _buildTransactionDetailsModal(transactionId),
+      builder: (context) => _buildTransactionDetailsModal(
+          noBukti, transactionId, cabang, sudahAmbil, status),
     );
   }
 
-  Widget _buildTransactionDetailsModal(int transactionId) {
+  Widget _buildTransactionDetailsModal(String? noBukti, int transactionId,
+      String cabang, bool sudahAmbil, String status) {
     return Container(
       height: MediaQuery.of(context).size.height * 0.8,
       decoration: BoxDecoration(
@@ -435,7 +484,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Detail Transaksi',
+                    noBukti ?? 'Detail Transaksi',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 18,
@@ -464,12 +513,23 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   return _buildEmptyTransactionDetails();
                 }
 
-                return ListView.builder(
-                  padding: EdgeInsets.all(16),
-                  itemCount: snapshot.data!.length,
-                  itemBuilder: (context, index) {
-                    return _buildTransactionDetailItem(snapshot.data![index]);
-                  },
+                return Column(
+                  children: [
+                    Expanded(
+                      child: ListView.builder(
+                        padding: EdgeInsets.all(16),
+                        itemCount: snapshot.data!.length,
+                        itemBuilder: (context, index) {
+                          return _buildTransactionDetailItem(
+                              snapshot.data![index]);
+                        },
+                      ),
+                    ),
+                    if (!sudahAmbil && status == '3')
+                      _buildPickupButton(transactionId, noBukti, cabang),
+                    if (sudahAmbil && status == '3')
+                      _buildReceiptButton(transactionId, noBukti, cabang),
+                  ],
                 );
               },
             ),
@@ -477,6 +537,389 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ],
       ),
     );
+  }
+
+// Tambahkan widget untuk button Ambil Pesanan
+  Widget _buildPickupButton(int transactionId, String? noBukti, String cabang) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF2E7D32),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            icon: Icon(
+              Icons.shopping_bag_outlined,
+              color: Colors.white,
+              size: 20,
+            ),
+            label: Text(
+              "Ambil Pesanan",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            onPressed: () {
+              _showPasswordDialog(transactionId, noBukti, cabang);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+// Tambahkan widget untuk button Lihat Bukti
+  Widget _buildReceiptButton(
+      int transactionId, String? noBukti, String cabang) {
+    return Container(
+      padding: EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 8,
+            offset: Offset(0, -2),
+          ),
+        ],
+      ),
+      child: SafeArea(
+        child: SizedBox(
+          width: double.infinity,
+          height: 50,
+          child: ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Color(0xFF2E7D32),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 2,
+            ),
+            icon: Icon(
+              Icons.receipt_long,
+              color: Colors.white,
+              size: 20,
+            ),
+            label: Text(
+              "Lihat Bukti Pengambilan",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            onPressed: () {
+              _showReceipt(transactionId, noBukti, cabang);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showReceipt(int transactionId, String? noBukti, String cabang) async {
+    try {
+      DialogConstant.loading(context, 'Loading...');
+      List<Map<String, dynamic>> items =
+          await _fetchTransactionItems(transactionId);
+
+      Map<String, dynamic>? headerData;
+      for (var transaction in transactions) {
+        if (transaction['transaction_id'] == transactionId) {
+          headerData = transaction;
+          break;
+        }
+      }
+
+      if (headerData != null && items.isNotEmpty) {
+        Navigator.of(context).pop();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BuktiScreen(
+              header: [headerData!],
+              item: items,
+            ),
+          ),
+        );
+      } else {
+        DialogConstant.alertError('Error', 'Tidak dapat memuat data bukti');
+      }
+    } catch (e) {
+      DialogConstant.alertError('Error', 'Terjadi kesalahan saat memuat bukti');
+    }
+  }
+
+// Tambahkan method untuk menampilkan dialog password
+  void _showPasswordDialog(int transactionId, String? noBukti, String cabang) {
+    final TextEditingController passwordController = TextEditingController();
+    bool isPasswordVisible = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return Dialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 16,
+              backgroundColor: Colors.white,
+              child: SingleChildScrollView(
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(20),
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFF2E7D32).withOpacity(0.05),
+                        Colors.white,
+                      ],
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Icon dengan animasi
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Color(0xFF2E7D32),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFF2E7D32).withOpacity(0.3),
+                              blurRadius: 20,
+                              spreadRadius: 5,
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          Icons.lock_outline,
+                          color: Colors.white,
+                          size: 40,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+
+                      // Title
+                      Text(
+                        "Konfirmasi Pengambilan",
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2E7D32),
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 12),
+
+                      // Message
+                      Text(
+                        "Konfirmasi pengambilan pesanan dilakukan pada saat berada di $cabang:",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[700],
+                          height: 1.4,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+
+                      // Transaction info
+                      Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          "No. Bukti: ${noBukti ?? 'N/A'}",
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.grey[700],
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      SizedBox(height: 20),
+
+                      // Password Input
+                      TextFormField(
+                        controller: passwordController,
+                        obscureText: !isPasswordVisible,
+                        decoration: InputDecoration(
+                          labelText: "Password",
+                          hintText: "Masukkan password Anda",
+                          prefixIcon: Icon(
+                            Icons.lock_outline,
+                            color: Color(0xFF2E7D32),
+                          ),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              isPasswordVisible
+                                  ? Icons.visibility
+                                  : Icons.visibility_off,
+                              color: Colors.grey[600],
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                isPasswordVisible = !isPasswordVisible;
+                              });
+                            },
+                          ),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide(color: Colors.grey[300]!),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide:
+                                BorderSide(color: Color(0xFF2E7D32), width: 2),
+                          ),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 16,
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 24),
+
+                      // Buttons
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(
+                                  color: Colors.grey[400]!,
+                                  width: 1.5,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: EdgeInsets.symmetric(vertical: 14),
+                              ),
+                              child: Text(
+                                'Batal',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[700],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF2E7D32),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: EdgeInsets.symmetric(vertical: 14),
+                                elevation: 2,
+                              ),
+                              child: Text(
+                                'Konfirmasi',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              onPressed: () {
+                                if (passwordController.text.isEmpty) {
+                                  DialogConstant.alert(
+                                      "Password tidak boleh kosong");
+                                  return;
+                                }
+                                Navigator.of(context).pop();
+                                _processPickup(transactionId,
+                                    passwordController.text, noBukti);
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  void _processPickup(
+      int transactionId, String password, String? noBukti) async {
+    DialogConstant.loading(context, "Memproses pengambilan...");
+    final username = await LocalData.getData('user');
+
+    API.basePost(
+        '/api/poin/confirm-pickup',
+        {
+          'noBukti': noBukti,
+          'password': password,
+          'username': username,
+          'tgl_ambil': DateFormat('yyyy-MM-dd').format(DateTime.now()),
+        },
+        {'Content-Type': 'application/json'},
+        true, (result, error) {
+      Navigator.of(context).pop();
+      Navigator.of(context).pop();
+      if (error != null) {
+        print(error);
+        DialogConstant.alertError('Gagal', error['message']);
+        return;
+      }
+      if (result != null && result['error'] == true) {
+        print(error);
+
+        DialogConstant.alertError('Gagal', result['message']);
+        return;
+      } else {
+        DialogConstant.showSuccessAlert(
+            title: "Berhasil",
+            message:
+                "Pengambilan pesanan dengan No. Bukti: ${noBukti ?? 'N/A'} berhasil dikonfirmasi.",
+            onComplete: () => fetchTransactions());
+      }
+    });
   }
 
   Widget _buildEmptyTransactionDetails() {
@@ -548,7 +991,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
             ),
             Text(
-              "${currencyFormatter.format(double.parse(item['total_price']))}",
+              "${currencyFormatter.format(item['total_price'] is int ? item['total_price'] : int.parse(item['total_price']))}",
               style: TextStyle(
                 fontWeight: FontWeight.bold,
                 fontSize: 14,

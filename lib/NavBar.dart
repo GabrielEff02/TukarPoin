@@ -1,3 +1,4 @@
+import 'package:e_commerce/constant/dialog_constant.dart';
 import 'package:e_commerce/screen/auth/login_screen.dart';
 import 'package:e_commerce/screen/gabriel/core/app_export.dart';
 import 'package:e_commerce/screen/gabriel/request_item/request_history_screen/request_history_screen.dart';
@@ -7,6 +8,7 @@ import 'package:e_commerce/screen/navbar_menu/history_screen.dart';
 import 'package:e_commerce/screen/navbar_menu/others_screen.dart';
 import 'package:e_commerce/screen/navbar_menu/contact_screen.dart';
 import 'package:e_commerce/screen/navbar_menu/outlet_screen.dart';
+// import 'package:e_commerce/screen/ocr_ktp/view/home.dart';
 import 'package:e_commerce/screen/srg/security_screen.dart';
 import 'package:get/get.dart';
 
@@ -108,7 +110,7 @@ class NavBar extends StatelessWidget {
           Divider(),
           ListTile(
             leading: Icon(Icons.more_horiz),
-            title: Text('Others'),
+            title: Text('Terms & Conditions'),
             onTap: () => Get.to(() => OthersScreen()),
           ),
           ListTile(
@@ -121,8 +123,19 @@ class NavBar extends StatelessWidget {
             leading: Icon(Icons.exit_to_app_rounded),
             title: Text('Log Out'),
             onTap: () {
-              LocalData.removeAllPreference();
-              Get.offAll(const LoginScreen());
+              DialogConstant.showConfirmationDialog(
+                title: "Keluar",
+                message: "Apakah Anda yakin ingin keluar dari aplikasi?",
+                confirmText: "Keluar",
+                cancelText: "Batal",
+                icon: Icons.logout,
+                confirmColor: Colors.red,
+                onConfirm: () {
+                  LocalData.removeAllPreference();
+                  Get.offAll(const LoginScreen());
+                },
+                onCancel: () => Get.back(),
+              );
             },
           ),
         ],

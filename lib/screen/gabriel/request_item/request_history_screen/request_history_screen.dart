@@ -40,7 +40,7 @@ class _RequestHistoryScreenState extends State<RequestHistoryScreen> {
             result['message'] == 'No data found') {
           completer.complete([]);
         } else {
-          DialogConstant.alertError(error.toString());
+          DialogConstant.alertError('Error', error.toString());
           completer.completeError(error);
         }
       },

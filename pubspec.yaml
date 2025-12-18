@@ -36,7 +36,7 @@ dependencies:
   shared_preferences: ^2.0.17
   get: ^4.6.6
   cached_network_image: ^3.2.1
-  fluttertoast: ^8.0.9
+  fluttertoast: ^8.2.14
   image_picker: ^0.8.6+4
   intl: ^0.18.0
   url_launcher: ^6.1.10
@@ -49,11 +49,8 @@ dependencies:
   http: ^1.2.2
   smooth_page_indicator: ^1.2.0+3
   rflutter_alert: ^2.0.7
-  firebase_messaging: ^15.1.5
-  firebase_core: ^3.8.0
-  flutter_local_notifications: ^18.0.1
   flutter_animate: ^4.5.2
-  flutter_pdfview: ^1.4.0
+  pdfx: ^2.6.0
   lucide_icons: ^0.257.0
   pinput: ^3.0.1
   pin_code_fields: ^8.0.1
