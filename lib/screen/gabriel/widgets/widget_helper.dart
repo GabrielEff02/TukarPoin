@@ -84,17 +84,19 @@ class WidgetHelper {
         actions: actions ?? []);
   }
 
-  static Future<void> showVIPModal(BuildContext context) async {
+  static Future<void> showVIPModal(
+      BuildContext context, Function callback) async {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const VIPCongratsModal(),
+      builder: (context) => VIPCongratsModal(callback: callback),
     );
   }
 }
 
 class VIPCongratsModal extends StatefulWidget {
-  const VIPCongratsModal({Key? key}) : super(key: key);
+  final Function callback;
+  const VIPCongratsModal({Key? key, required this.callback}) : super(key: key);
 
   @override
   State<VIPCongratsModal> createState() => _VIPCongratsModalState();
@@ -105,35 +107,44 @@ class _VIPCongratsModalState extends State<VIPCongratsModal>
   late AnimationController _animationController;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
+
   int _countdown = 3;
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
+    _setupAnimations();
+    _startCountdown();
+  }
 
-    // Setup animations
+  void _setupAnimations() {
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 400),
       vsync: this,
     );
 
     _scaleAnimation = Tween<double>(begin: 0.9, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+      CurvedAnimation(
+        parent: _animationController,
+        curve: Curves.easeOut,
+      ),
     );
 
     _animationController.forward();
-
-    // Start countdown timer
-    _startCountdown();
   }
 
   void _startCountdown() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) return;
+
       setState(() {
         _countdown--;
       });
@@ -141,6 +152,7 @@ class _VIPCongratsModalState extends State<VIPCongratsModal>
       if (_countdown <= 0) {
         timer.cancel();
         _closeModal();
+        widget.callback();
       }
     });
   }
@@ -168,286 +180,145 @@ class _VIPCongratsModalState extends State<VIPCongratsModal>
         child: ScaleTransition(
           scale: _scaleAnimation,
           child: Container(
-            constraints: const BoxConstraints(maxWidth: 400),
+            constraints: const BoxConstraints(maxWidth: 320),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFFFFD700), // Gold
+                  Color(0xFFFFA500), // Orange gold
+                  Color(0xFFFFD700), // Gold
+                ],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [
-                  Colors.amber.shade900.withOpacity(0.4),
-                  Colors.amber.shade800.withOpacity(0.3),
-                  Colors.amber.shade900.withOpacity(0.4),
-                ],
               ),
-              borderRadius: BorderRadius.circular(24),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: Colors.amber.withOpacity(0.3),
+                color: const Color(0xFFD4AF37),
                 width: 2,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.amber.withOpacity(0.2),
+                  color: const Color(0xFFD4AF37).withOpacity(0.3),
                   blurRadius: 20,
-                  spreadRadius: 5,
+                  spreadRadius: 2,
                 ),
               ],
             ),
-            child: Stack(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                // Background sparkles
-                ...List.generate(4, (index) => _buildSparkle(index)),
-
-                // Main content
-                Padding(
-                  padding: const EdgeInsets.all(32),
+                // Header with gold accent
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withOpacity(0.3),
+                        Colors.white.withOpacity(0.1),
+                      ],
+                    ),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(18),
+                      topRight: Radius.circular(18),
+                    ),
+                  ),
                   child: Column(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Crown icon with glow
-                      _buildCrownIcon(),
-                      const SizedBox(height: 24),
-
-                      // Title
-                      ShaderMask(
-                        shaderCallback: (bounds) => const LinearGradient(
-                          colors: [
-                            Color(0xFFFFF9C4),
-                            Color(0xFFFFD54F),
-                            Color(0xFFFFF9C4),
+                      // Crown icon
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color.fromARGB(255, 124, 124, 124)
+                                  .withOpacity(0.3),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                            ),
                           ],
-                        ).createShader(bounds),
-                        child: const Text(
-                          'Selamat!',
-                          style: TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                        ),
+                        child: const Icon(
+                          Icons.workspace_premium,
+                          size: 32,
+                          color: Color(0xFFFFD700), // Gold
                         ),
                       ),
-                      const SizedBox(height: 8),
+                    ],
+                  ),
+                ),
+
+                // Content
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+                  child: Column(
+                    children: [
+                      // Title
+
+                      const Text(
+                        'Selamat!',
+                        style: TextStyle(
+                          fontSize: 26,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
 
                       // Subtitle
                       const Text(
                         'Anda Sekarang VIP',
                         style: TextStyle(
-                          fontSize: 24,
+                          fontSize: 15,
                           fontWeight: FontWeight.w600,
-                          color: Colors.amber,
+                          color: Color.fromARGB(255, 255, 255, 255),
                         ),
                       ),
+
                       const SizedBox(height: 16),
 
-                      // Description
-                      const Text(
-                        'Nikmati akses eksklusif dan berbagai keistimewaan yang telah kami siapkan khusus untuk Anda',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.white70,
-                          height: 1.5,
-                        ),
+                      // Timer
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              color: const Color.fromARGB(255, 255, 255, 255),
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color:
+                                      const Color.fromARGB(255, 255, 255, 255)
+                                          .withOpacity(0.8),
+                                  blurRadius: 6,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Menutup dalam $_countdown detik',
+                            style: const TextStyle(
+                              color: Color.fromARGB(255, 255, 255, 255),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 24),
-
-                      // Timer badge
-                      _buildTimerBadge(),
                     ],
                   ),
                 ),
-
-                // Close button
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: IconButton(
-                    onPressed: _closeModal,
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.black54,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white24),
-                      ),
-                      child: const Icon(
-                        Icons.close,
-                        color: Colors.white70,
-                        size: 20,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Bottom decorative line
-                Positioned(
-                  bottom: 0,
-                  left: 0,
-                  right: 0,
-                  child: Container(
-                    height: 2,
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          Colors.transparent,
-                          Colors.amber.shade400,
-                          Colors.transparent,
-                        ],
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(24),
-                        bottomRight: Radius.circular(24),
-                      ),
-                    ),
-                  ),
-                ),
               ],
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildCrownIcon() {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // Glow effect
-        Container(
-          width: 120,
-          height: 120,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: Colors.amber.withOpacity(0.4),
-                blurRadius: 40,
-                spreadRadius: 10,
-              ),
-            ],
-          ),
-        ),
-        // Icon container
-        Container(
-          width: 100,
-          height: 100,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.amber.shade400,
-                Colors.amber.shade600,
-              ],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.amber.shade600.withOpacity(0.5),
-                blurRadius: 15,
-                spreadRadius: 2,
-              ),
-            ],
-          ),
-          child: const Icon(
-            Icons.workspace_premium,
-            size: 50,
-            color: Color(0xFF1a1a2e),
-          ),
-        ),
-        // Sparkle icon
-        const Positioned(
-          top: 0,
-          right: 10,
-          child: Icon(
-            Icons.auto_awesome,
-            color: Colors.amber,
-            size: 24,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTimerBadge() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            Colors.amber.withOpacity(0.2),
-            Colors.amber.withOpacity(0.3),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.amber.withOpacity(0.5),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: const BoxDecoration(
-              color: Colors.amber,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            'Menutup dalam $_countdown detik',
-            style: const TextStyle(
-              color: Colors.amber,
-              fontWeight: FontWeight.w600,
-              fontSize: 13,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSparkle(int index) {
-    final positions = [
-      const Offset(40, 40),
-      const Offset(320, 80),
-      const Offset(80, 280),
-      const Offset(320, 320),
-    ];
-
-    final delays = [0, 300, 700, 1000];
-
-    return Positioned(
-      left: positions[index].dx,
-      top: positions[index].dy,
-      child: TweenAnimationBuilder<double>(
-        tween: Tween(begin: 0.0, end: 1.0),
-        duration: Duration(milliseconds: 1000 + delays[index]),
-        builder: (context, value, child) {
-          return Opacity(
-            opacity: (value * 2).clamp(0.0, 1.0) * 0.6,
-            child: Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: index % 2 == 0
-                    ? Colors.amber.shade300
-                    : Colors.amber.shade400,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.amber.withOpacity(0.5),
-                    blurRadius: 4,
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
       ),
     );
   }

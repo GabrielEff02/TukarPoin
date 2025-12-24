@@ -21,7 +21,9 @@ class ShoppingCartScreen extends StatefulWidget {
 class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
   late num totalQuantityFinal = 0;
   late num totalPriceFinal = 0;
-  late int point;
+  int point = 0;
+  int pointLama = 0;
+  String digunakan = '';
   List<Map<String, dynamic>> companyCode = [];
   String selectedCompany = 'all';
   bool isChecked = false;
@@ -70,8 +72,15 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
 
   Future<void> getPoint() async {
     final points = await LocalData.getData('point');
+    final pointsLama = await LocalData.getData('prev_point');
     setState(() {
       point = int.parse(points);
+      pointLama = int.parse(pointsLama);
+      if (totalPriceFinal <= pointLama) {
+        digunakan = 'lama';
+      } else {
+        digunakan = 'baru';
+      }
     });
   }
 
@@ -123,11 +132,12 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
   void submitItems(items, totalPriceFinal, isCheked) async {
     if (items.toString().isNotEmpty) {
       DialogConstant.loading(context, 'Transaction on Process...');
-
+      final pointlama = await LocalData.getData('prev_point');
       Map<String, dynamic> postTransaction = {
         'total_amount': totalPriceFinal,
         'is_delivery': 0,
         'cabang_ambil': selectedCompany,
+        'per_sekarang': totalPriceFinal <= int.parse(pointlama) ? false : true,
       };
       // if (await LocalData.containsKey('detailKTP')) {
       ShoppingCartController().postTransactions(
@@ -186,13 +196,45 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
           margin: const EdgeInsets.symmetric(vertical: 8.0),
           child: Padding(
             padding: const EdgeInsets.all(12.0),
-            child: Row(
+            child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Balance:', style: CustomTextStyle.titleMediumBlack900),
-                Text(
-                  currencyFormatter.format(point),
-                  style: CustomTextStyle.titleMediumBlack900,
+                if (pointLama > 0) ...[
+                  Container(
+                    child: Row(
+                      children: [
+                        Text('Balance Periode Lalu:',
+                            style: digunakan == 'lama'
+                                ? CustomTextStyle.titleMediumGreen700
+                                : CustomTextStyle.titleMediumBlack900),
+                        SizedBox(width: 8.adaptSize),
+                        Text(
+                          currencyFormatter.format(pointLama),
+                          style: digunakan == 'lama'
+                              ? CustomTextStyle.titleMediumGreen700
+                              : CustomTextStyle.titleMediumBlack900,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 8.adaptSize),
+                ],
+                Container(
+                  child: Row(
+                    children: [
+                      Text('Balance:',
+                          style: digunakan == 'baru'
+                              ? CustomTextStyle.titleMediumGreen700
+                              : CustomTextStyle.titleMediumBlack900),
+                      SizedBox(width: 8.adaptSize),
+                      Text(
+                        currencyFormatter.format(point),
+                        style: digunakan == 'baru'
+                            ? CustomTextStyle.titleMediumGreen700
+                            : CustomTextStyle.titleMediumBlack900,
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -270,7 +312,9 @@ class _ShoppingCartScreenState extends State<ShoppingCartScreen> {
                     Text('Remain Balance:',
                         style: CustomTextStyle.titleMediumBlack900),
                     Text(
-                      currencyFormatter.format(point - totalPriceFinal),
+                      currencyFormatter.format(digunakan == 'lama'
+                          ? pointLama - totalPriceFinal
+                          : point - totalPriceFinal),
                       style: CustomTextStyle.titleMediumGreen700,
                     ),
                   ],

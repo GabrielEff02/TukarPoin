@@ -29,11 +29,11 @@ class ShoppingCartController {
         'price': price,
       };
     }).toList();
-
     // Gabungkan semua data ke postTransaction
     postTransaction!['username'] = username;
     postTransaction['items'] = items;
     postTransaction['compan_code'] = companCode;
+
     postTransaction['datetime'] = DateTime.now().toIso8601String();
     API.basePost('/api/poin/update-transactions', postTransaction, header, true,
         (result, error) async {
@@ -45,9 +45,17 @@ class ShoppingCartController {
           cart.remove(companCode);
           LocalData.saveData('cart', jsonEncode(cart));
           int currentPoint = int.parse(await LocalData.getData('point'));
+          int currentPointLama =
+              int.parse(await LocalData.getData('prev_point'));
           int totalHarga =
               items.fold(0, (sum, item) => sum + item['total_price'] as int);
-          LocalData.saveData('point', (currentPoint - totalHarga).toString());
+          LocalData.saveData(
+              postTransaction['per_sekarang'] ? 'point' : 'prev_point',
+              ((postTransaction['per_sekarang']
+                          ? currentPoint
+                          : currentPointLama) -
+                      totalHarga)
+                  .toString());
         }
 
         Get.offAll(LandingHome());

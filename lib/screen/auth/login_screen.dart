@@ -39,11 +39,24 @@ class _LoginScreenState extends State<LoginScreen> {
         await LocalData.containsKey('password')) {
       logincontroller.edtPhone.text = await LocalData.getData('phone');
       logincontroller.edtPass.text = await LocalData.getData('password');
-      // clearCart();
+      clearCart();
       logincontroller.validation(
         context: context,
         callback: (result, error) async {
           if (result != null && result['error'] != true) {
+            if (result['newVip']) {
+              WidgetHelper.showVIPModal(context, () {
+                if (result['data'][0]['register_confirmation'] == '0') {
+                  LocalData.saveData('email', result['data'][0]['email']);
+                  LocalData.saveData('phone', result['data'][0]['phone']);
+                  Get.to(() => VerifyPhoneScreen());
+                } else {
+                  Get.offAll(LandingHome());
+                  // Get.offAll(SplashScreen());
+                }
+              });
+              return;
+            }
             if (result['data'][0]['register_confirmation'] == '0') {
               LocalData.saveData('email', result['data'][0]['email']);
               LocalData.saveData('phone', result['data'][0]['phone']);
@@ -198,18 +211,36 @@ class _LoginScreenState extends State<LoginScreen> {
                               context: context,
                               callback: (result, error) async {
                                 if (result != null && result['error'] != true) {
-                                  if (result['newVip'] > 0) {
-                                    await WidgetHelper.showVIPModal(context);
+                                  if (result['newVip']) {
+                                    WidgetHelper.showVIPModal(context, () {
+                                      if (result['data'][0]
+                                              ['register_confirmation'] ==
+                                          '0') {
+                                        LocalData.saveData('email',
+                                            result['data'][0]['email']);
+                                        LocalData.saveData('phone',
+                                            result['data'][0]['phone']);
+                                        Get.to(() => VerifyPhoneScreen());
+                                      } else {
+                                        Get.offAll(LandingHome());
+                                        // Get.offAll(SplashScreen());
+                                      }
+                                      DialogConstant.loading(
+                                          context, "Loading...");
+                                    });
+                                    return;
                                   }
                                   if (result['data'][0]
                                           ['register_confirmation'] ==
                                       '0') {
                                     LocalData.saveData(
                                         'email', result['data'][0]['email']);
+                                    LocalData.saveData(
+                                        'phone', result['data'][0]['phone']);
                                     Get.to(() => VerifyPhoneScreen());
                                   } else {
-                                    // Get.offAll(SplashScreen());
                                     Get.offAll(LandingHome());
+                                    // Get.offAll(SplashScreen());
                                   }
                                 } else {
                                   DialogConstant.alertError(

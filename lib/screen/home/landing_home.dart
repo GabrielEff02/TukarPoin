@@ -59,9 +59,20 @@ class _LandingHomeState extends State<LandingHome>
         SplashScreen.notificationData['count'] > 0) {
       _controller.repeat(reverse: true);
     }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      passwordCheck();
+    });
     // if (NotificationApi.notificationId != 0) {
     //   Get.to(NotificationScreen());
     // }
+  }
+
+  void passwordCheck() async {
+    final phone = await LocalData.getData('phone');
+    final password = await LocalData.getData('password');
+    if (phone == password) {
+      DialogConstant.showDefaultPasswordModal(context);
+    }
   }
 
   void _navigateToPage(int pageIndex) {
@@ -74,8 +85,10 @@ class _LandingHomeState extends State<LandingHome>
       _isPageLoading = true;
       _currentIndex = pageIndex;
     });
-    if (pageIndex != 0) DialogConstant.loading(context, "Loading...");
-
+    if (pageIndex != 0) {
+      DialogConstant.loading(context, "Loading...");
+      LocalData.saveDataBool('isLoading', true);
+    }
     controllers
         .animateToPage(
       pageIndex,
@@ -193,8 +206,10 @@ class _LandingHomeState extends State<LandingHome>
             ],
             onPageChanged: (val) {
               if (mounted && !_isPageLoading) {
-                if (val != 0) DialogConstant.loading(context, "Loading...");
-
+                if (val != 0) {
+                  DialogConstant.loading(context, "Loading...");
+                  LocalData.saveDataBool('isLoading', true);
+                }
                 setState(() {
                   buttonPressed1 = val == 0;
                   buttonPressed2 = val == 1;

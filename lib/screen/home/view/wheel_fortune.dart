@@ -61,7 +61,11 @@ class _WheelFortuneState extends State<WheelFortune>
     await getData();
     await Future.delayed(Duration(milliseconds: 500));
 
-    if (mounted) Navigator.of(context).pop();
+    final loading = await LocalData.getDataBool('isLoading');
+    if (mounted && loading) {
+      Navigator.of(context).pop();
+      LocalData.saveDataBool('isLoading', false);
+    }
   }
 
   Future<void> getData() async {
@@ -158,13 +162,13 @@ class _WheelFortuneState extends State<WheelFortune>
           actions: [
             TextButton(
               onPressed: () async {
-                if (await LocalData.containsKey('point')) {
-                  final poin = await LocalData.getData('point');
-                  final totalPoin = result! + int.parse(poin);
-                  LocalData.saveData('point', totalPoin.toString());
-                  LocalData.saveData('max_point', totalPoin.toString());
-                }
-                Navigator.of(context).pop(); // Close the pop-up
+                final poin = await LocalData.getData('point');
+                final totalPoin = result! + int.parse(poin);
+                LocalData.saveData('point', totalPoin.toString());
+                LocalData.saveData('max_point', totalPoin.toString());
+
+                Navigator.of(context).pop();
+                _updatePointsInDatabase();
               },
               child: const Text("OK"),
             ),
@@ -172,15 +176,19 @@ class _WheelFortuneState extends State<WheelFortune>
         );
       },
     );
-
-    _updatePointsInDatabase();
   }
 
   Future<void> _updatePointsInDatabase() async {
     try {
       final username = await LocalData.getData('user');
       int points = result!;
-
+      final vip = await LocalData.getData('vip');
+      final poin = await LocalData.getData('point');
+      if (vip == '0' && int.parse(poin) >= 1500) {
+        WidgetHelper.showVIPModal(context, () {
+          LocalData.saveData('vip', '1');
+        });
+      }
       // Send data to the server
       final response = await API.basePost(
           '/api/poin/earn-point',

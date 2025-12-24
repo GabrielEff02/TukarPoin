@@ -3,7 +3,6 @@ import 'package:e_commerce/constant/text_constant.dart';
 
 import '../../../screen/gabriel/core/app_export.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../screen/auth/login_screen.dart';
 import '../../navbar_menu/contact_screen.dart';
@@ -37,12 +36,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
           this.name = name;
         });
       }
-
       await Future.delayed(const Duration(milliseconds: 500));
     } catch (e) {
       print('Error loading user data: $e');
     } finally {
-      Navigator.of(context).pop();
+      final loading = await LocalData.getDataBool('isLoading');
+      if (mounted && loading) {
+        Navigator.of(context).pop();
+        LocalData.saveDataBool('isLoading', false);
+      }
     }
   }
 
@@ -55,7 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         elevation: 0,
         title: Text(
           "PROFILE",
-          style: GoogleFonts.poppins(
+          style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w700,
             fontSize: 22,
@@ -111,7 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     // User Name
                     Text(
                       name,
-                      style: GoogleFonts.poppins(
+                      style: TextStyle(
                         color: Colors.white,
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
@@ -123,7 +125,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       builder: (context, snapshot) {
                         return Text(
                           snapshot.data ?? "",
-                          style: GoogleFonts.poppins(
+                          style: TextStyle(
                             color: Colors.white,
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
@@ -223,7 +225,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     const SizedBox(width: 10),
                                     Text(
                                       'Log Out',
-                                      style: GoogleFonts.poppins(
+                                      style: TextStyle(
                                         color: Colors.white,
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -306,7 +308,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 Expanded(
                   child: Text(
                     title,
-                    style: GoogleFonts.poppins(
+                    style: TextStyle(
                       color: Colors.grey[800],
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -353,14 +355,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           title: Text(
             'Confirm Logout',
-            style: GoogleFonts.poppins(
+            style: TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 18,
             ),
           ),
           content: Text(
             'Are you sure you want to log out?',
-            style: GoogleFonts.poppins(
+            style: TextStyle(
               fontSize: 14,
               color: Colors.grey[600],
             ),
@@ -370,7 +372,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () => Navigator.of(context).pop(),
               child: Text(
                 'Cancel',
-                style: GoogleFonts.poppins(
+                style: TextStyle(
                   color: Colors.grey[600],
                   fontWeight: FontWeight.w500,
                 ),
@@ -380,7 +382,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               onPressed: () => _handleLogout(),
               child: Text(
                 'Logout',
-                style: GoogleFonts.poppins(
+                style: TextStyle(
                   color: Color(0xFFff6b6b),
                   fontWeight: FontWeight.w600,
                 ),

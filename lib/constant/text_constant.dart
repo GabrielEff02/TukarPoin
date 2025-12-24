@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class TextConstant {
   static String strProfile =
@@ -9,9 +8,15 @@ class TextConstant {
   static String strLine2 =
       'Mampu memberikan yang terbaik sesuai dengan kebutuhan dan memberikan pelayanan yang terbaik.';
 
-  static TextStyle medium =
-      GoogleFonts.montserrat(fontSize: 12, color: Colors.grey.shade400);
+  static TextStyle medium = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w500,
+    color: Colors.grey.shade400,
+  );
 
-  static TextStyle regular =
-      GoogleFonts.montserrat(fontSize: 12, color: Colors.black);
+  static TextStyle regular = TextStyle(
+    fontSize: 12,
+    fontWeight: FontWeight.w400,
+    color: Colors.black,
+  );
 }

@@ -10,15 +10,28 @@ class HistoryScreen extends StatefulWidget {
   _HistoryScreenState createState() => _HistoryScreenState();
 }
 
-class _HistoryScreenState extends State<HistoryScreen> {
-  List<Map<String, dynamic>> transactions = [];
+class _HistoryScreenState extends State<HistoryScreen>
+    with SingleTickerProviderStateMixin {
+  List<Map<String, dynamic>> currentPeriodTransactions = [];
+  List<Map<String, dynamic>> previousPeriodTransactions = [];
   bool isLoading = true;
   int totalBalance = 0;
+  int totalBalancePrev = 0;
+  late TabController _tabController;
+  Map<String, dynamic> periodeNow = {};
+  Map<String, dynamic> periodePrevious = {};
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     fetchTransactions();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   NumberFormat currencyFormatter = NumberFormat.currency(
@@ -31,6 +44,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
     try {
       final String username = await LocalData.getData('user');
       final String balance = await LocalData.getData('point');
+      final String balancePrev = await LocalData.getData('prev_point');
+      periodeNow = jsonDecode(await LocalData.getData('current_period'));
+      if (await LocalData.containsKey('previous_period')) {
+        periodePrevious =
+            jsonDecode(await LocalData.getData('previous_period'));
+      }
       final String apiUrl = "${API.BASE_URL}/api/poin/transactions/$username";
 
       final response = await http.get(Uri.parse(apiUrl));
@@ -38,26 +57,48 @@ class _HistoryScreenState extends State<HistoryScreen> {
       if (response.statusCode == 200) {
         List<dynamic> data = json.decode(response.body);
 
+        // Dapatkan tanggal saat ini
+        DateTime startOfCurrentMonth =
+            DateTime.parse(periodeNow['tanggal_mulai_pengumpulan']);
+        DateTime endOfCurrentMonth =
+            DateTime.parse(periodeNow['tanggal_akhir_pengumpulan']);
+
+        List<Map<String, dynamic>> current = [];
+        List<Map<String, dynamic>> previous = [];
+
+        for (var item in data) {
+          Map<String, dynamic> transaction = {
+            "transaction_id": item["transaction_id"],
+            "date": item["date"],
+            "total_amount": item["total_amount"] is String
+                ? (double.parse(item["total_amount"])).toInt()
+                : item["total_amount"].toInt(),
+            "isNegative": item["is_negative"] == "true",
+            "status": item['status'],
+            "name": item['name'],
+            "is_delivery": item['is_delivery'],
+            "no_bukti": item['no_bukti'],
+            "waktu_ambil": item['waktu_ambil'],
+            "sudah_ambil": item['sudah_ambil'],
+            "tgl_ambil": item['tgl_ambil'],
+            "keterangan": item['keterangan']
+          };
+
+          DateTime transactionDate = DateTime.parse(item["date"]);
+
+          // Pisahkan berdasarkan periode
+          if (transactionDate.isAfter(startOfCurrentMonth) &&
+              transactionDate.isBefore(endOfCurrentMonth)) {
+            current.add(transaction);
+          } else {
+            previous.add(transaction);
+          }
+        }
+
         setState(() {
           totalBalance = int.parse(balance);
-          transactions = data.map((item) {
-            return {
-              "transaction_id": item["transaction_id"],
-              "date": item["date"],
-              "total_amount": item["total_amount"] is String
-                  ? (double.parse(item["total_amount"])).toInt()
-                  : item["total_amount"].toInt(),
-              "isNegative": item["is_negative"] == "true",
-              "status": item['status'],
-              "name": item['name'],
-              "is_delivery": item['is_delivery'],
-              "no_bukti": item['no_bukti'],
-              "waktu_ambil": item['waktu_ambil'],
-              "sudah_ambil": item['sudah_ambil'],
-              "tgl_ambil": item['tgl_ambil'],
-              "keterangan": item['keterangan']
-            };
-          }).toList();
+          currentPeriodTransactions = current;
+          previousPeriodTransactions = previous;
           isLoading = false;
         });
       } else {
@@ -87,25 +128,58 @@ class _HistoryScreenState extends State<HistoryScreen> {
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.white),
         centerTitle: true,
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: Colors.white,
+          indicatorWeight: 3,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          labelStyle: TextStyle(
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
+          unselectedLabelStyle: TextStyle(
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+          ),
+          tabs: [
+            Tab(text: 'Periode Saat Ini'),
+            if (periodePrevious.isNotEmpty) Tab(text: 'Periode Sebelumnya'),
+          ],
+        ),
       ),
       body: isLoading
           ? _buildLoadingState()
-          : transactions.isEmpty
-              ? _buildEmptyState()
-              : RefreshIndicator(
-                  onRefresh: fetchTransactions,
-                  color: Color(0xFF2E7D32),
-                  child: SingleChildScrollView(
-                    physics: AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      children: [
-                        _buildHeader(),
-                        _buildTransactionsList(),
-                        SizedBox(height: 20),
-                      ],
-                    ),
-                  ),
-                ),
+          : TabBarView(
+              controller: _tabController,
+              children: [
+                _buildTransactionTab(currentPeriodTransactions),
+                if (periodePrevious.isNotEmpty)
+                  _buildTransactionTab(previousPeriodTransactions, now: false),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildTransactionTab(List<Map<String, dynamic>> transactions,
+      {bool now = true}) {
+    if (transactions.isEmpty) {
+      return _buildEmptyState();
+    }
+
+    return RefreshIndicator(
+      onRefresh: fetchTransactions,
+      color: Color(0xFF2E7D32),
+      child: SingleChildScrollView(
+        physics: AlwaysScrollableScrollPhysics(),
+        child: Column(
+          children: [
+            _buildHeader(now),
+            _buildTransactionsList(transactions),
+            SizedBox(height: 20),
+          ],
+        ),
+      ),
     );
   }
 
@@ -162,7 +236,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(bool now) {
     return Container(
       margin: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -200,7 +274,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ),
             SizedBox(height: 8),
             FutureBuilder(
-              future: LocalData.getData('point'),
+              future: LocalData.getData(now ? 'point' : 'prev_point'),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return CircularProgressIndicator(
@@ -233,20 +307,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildTransactionsList() {
+  Widget _buildTransactionsList(List<Map<String, dynamic>> transactions) {
     return ListView.builder(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
       padding: EdgeInsets.symmetric(horizontal: 16),
       itemCount: transactions.length,
       itemBuilder: (context, index) {
-        return _buildTransactionCard(index);
+        return _buildTransactionCard(transactions[index]);
       },
     );
   }
 
-  Widget _buildTransactionCard(int index) {
-    final transaction = transactions[index];
+  Widget _buildTransactionCard(Map<String, dynamic> transaction) {
     bool isNegative = transaction["isNegative"];
     int totalAmount = transaction["total_amount"];
     DateTime date = DateTime.parse(transaction["date"]);
@@ -539,7 +612,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-// Tambahkan widget untuk button Ambil Pesanan
   Widget _buildPickupButton(int transactionId, String? noBukti, String cabang) {
     return Container(
       padding: EdgeInsets.all(16),
@@ -588,7 +660,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-// Tambahkan widget untuk button Lihat Bukti
   Widget _buildReceiptButton(
       int transactionId, String? noBukti, String cabang) {
     return Container(
@@ -645,7 +716,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
           await _fetchTransactionItems(transactionId);
 
       Map<String, dynamic>? headerData;
-      for (var transaction in transactions) {
+      // Cari di kedua list transaksi
+      for (var transaction in [
+        ...currentPeriodTransactions,
+        ...previousPeriodTransactions
+      ]) {
         if (transaction['transaction_id'] == transactionId) {
           headerData = transaction;
           break;
@@ -671,7 +746,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
     }
   }
 
-// Tambahkan method untuk menampilkan dialog password
   void _showPasswordDialog(int transactionId, String? noBukti, String cabang) {
     final TextEditingController passwordController = TextEditingController();
     bool isPasswordVisible = false;
@@ -705,7 +779,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Icon dengan animasi
                       Container(
                         width: 80,
                         height: 80,
@@ -727,8 +800,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
                       ),
                       SizedBox(height: 20),
-
-                      // Title
                       Text(
                         "Konfirmasi Pengambilan",
                         style: TextStyle(
@@ -739,8 +810,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         textAlign: TextAlign.center,
                       ),
                       SizedBox(height: 12),
-
-                      // Message
                       Text(
                         "Konfirmasi pengambilan pesanan dilakukan pada saat berada di $cabang:",
                         textAlign: TextAlign.center,
@@ -751,8 +820,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
                       ),
                       SizedBox(height: 8),
-
-                      // Transaction info
                       Container(
                         width: double.infinity,
                         padding: EdgeInsets.all(12),
@@ -771,8 +838,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
                       ),
                       SizedBox(height: 20),
-
-                      // Password Input
                       TextFormField(
                         controller: passwordController,
                         obscureText: !isPasswordVisible,
@@ -812,8 +877,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
                       ),
                       SizedBox(height: 24),
-
-                      // Buttons
                       Row(
                         children: [
                           Expanded(

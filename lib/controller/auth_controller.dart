@@ -1,13 +1,10 @@
 import 'dart:convert';
 
-import 'package:e_commerce/api/notification_api.dart';
 import 'package:e_commerce/screen/gabriel/core/app_export.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-import '../api/api.dart';
 import '../constant/dialog_constant.dart';
-import '../utils/local_data.dart';
 import 'dart:async';
+import 'package:http/http.dart' as http;
 
 class AuthController extends GetxController {
   RxBool openPassLogin = true.obs;
@@ -48,7 +45,7 @@ class AuthController extends GetxController {
     }
   }
 
-  postLogin({BuildContext? context, void callback(result, exception)?}) {
+  postLogin({BuildContext? context, void callback(result, exception)?}) async {
     DialogConstant.loading(context!, 'Loading...');
 
     var post = Map<String, dynamic>();
@@ -73,7 +70,23 @@ class AuthController extends GetxController {
             null, 'Request timed out. Please check your internet connection.');
       }
     });
+    final String apiUrl = "${API.BASE_URL}/api/poin/get-periods";
+    List<dynamic> dataPeriod = [];
+    final response = await http.get(Uri.parse(apiUrl));
+    final result = jsonDecode(response.body);
+    if (result != null) {
+      if (result['error'] == false) {
+        dataPeriod = result['data'];
 
+        if (dataPeriod[0] != null) {
+          LocalData.saveData('current_period', jsonEncode(dataPeriod[0]) ?? '');
+        }
+        if (dataPeriod.length > 1) {
+          LocalData.saveData(
+              'previous_period', jsonEncode(dataPeriod[1]) ?? '');
+        }
+      }
+    }
     API.basePost('/api/poin/login', post, header, true, (result, error) async {
       if (!isCompleted) {
         isCompleted = true;
@@ -106,6 +119,12 @@ class AuthController extends GetxController {
             LocalData.saveData('address', dataUser[0]['default_address'] ?? "");
             LocalData.saveData('phone', dataUser[0]['phone'] ?? "");
             LocalData.saveData('point', dataUser[0]['point'].toString());
+            if (dataPeriod.length > 1) {
+              LocalData.saveData(
+                  'prev_point', dataUser[0]['point_lama'].toString());
+            } else {
+              LocalData.saveData('prev_point', '0');
+            }
             LocalData.saveData('vip', dataUser[0]['vip'].toString());
             LocalData.saveData('barcode', dataUser[0]['barcode'].toString());
             LocalData.saveData(

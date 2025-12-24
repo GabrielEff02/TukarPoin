@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:typed_data';
+import 'package:e_commerce/constant/dialog_constant.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 
@@ -11,7 +11,6 @@ import 'package:e_commerce/screen/gabriel/request_item/request_item_screen/reque
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import '../../../controller/landing_controller.dart';
 import '../../../screen/gabriel/core/app_export.dart';
@@ -30,6 +29,7 @@ class _LandingScreenState extends State<LandingScreen> {
   String noMember = '{Nomor Member}';
   String point = '0';
   String vip = '0';
+  String prevPoint = '0';
   bool first = true;
   Map<String, dynamic> categoryData = {};
   void initState() {
@@ -43,6 +43,7 @@ class _LandingScreenState extends State<LandingScreen> {
     final profile = await LocalData.getData("profile_picture");
     final name = await LocalData.getData("full_name");
     final myPoint = await LocalData.getData('point');
+    final myPrevPoint = await LocalData.getData('prev_point');
     final myVIP = await LocalData.getData('vip');
     final myBarcode = await LocalData.getData('barcode');
 
@@ -51,6 +52,7 @@ class _LandingScreenState extends State<LandingScreen> {
       profilePicture = profile;
       fullName = name;
       point = myPoint;
+      prevPoint = myPrevPoint;
       noMember = myBarcode;
       vip = myVIP;
       if (vip == '0' && int.parse(myPoint) >= 1500) {
@@ -137,8 +139,9 @@ class _LandingScreenState extends State<LandingScreen> {
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
                               Expanded(
-                                child:
-                                    itemMenu(point: true, value: [point, vip]),
+                                child: itemMenu(
+                                    point: true,
+                                    value: [point, vip, prevPoint]),
                               ),
                             ],
                           ),
@@ -260,275 +263,286 @@ class _LandingScreenState extends State<LandingScreen> {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8.adaptSize),
       child: point
-          ? Container(
-              width: 285.h,
-              padding: EdgeInsets.all(15.adaptSize),
-              decoration: BoxDecoration(
-                gradient: isVip
-                    ? LinearGradient(
-                        colors: [
-                          Color(0xFFFFD700), // Gold
-                          Color(0xFFFFA500), // Orange gold
-                          Color(0xFFFFD700), // Gold
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      )
-                    : LinearGradient(
-                        colors: [
-                          Color(0xFF6DB9EF), // Light blue
-                          Color(0xFF87CEEB), // Sky blue
-                          Color(0xFF6DB9EF), // Light blue
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: isVip
-                        ? Color(0xFFFFD700).withOpacity(0.3)
-                        : Color(0xFF6DB9EF).withOpacity(0.3),
-                    blurRadius: 15,
-                    spreadRadius: 2,
-                    offset: Offset(0, 6),
-                  ),
-                ],
-              ),
-              margin: EdgeInsets.symmetric(horizontal: 10.h, vertical: 5.v),
-              child: Column(
-                children: [
-                  // Member Status Header
-                  Container(
-                    padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        isVip
-                            ? Icon(
-                                FontAwesomeIcons.crown,
-                                color: Color(0xFFB8860B),
-                                size: 20,
-                              )
-                            : Icon(
-                                Icons.stars,
-                                color: Color(0xFF4682B4),
-                                size: 20,
-                              ),
-                        SizedBox(width: 8),
-                        Text(
-                          isVip ? "VIP MEMBER" : "BASIC MEMBER",
-                          style: GoogleFonts.poppins(
-                            color:
-                                isVip ? Color(0xFFB8860B) : Color(0xFF4682B4),
-                            fontSize: 12.adaptSize,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.2,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 15),
+          ? GestureDetector(
+              onTap: () {
+                print('value: $value');
 
-                  // Points Section
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Column(
+                if (int.parse(value[2]) > 0)
+                  DialogConstant.showPeriodComparisonDialog(
+                      context, int.parse(value[0]), int.parse(value[2]));
+              },
+              child: Container(
+                width: 285.h,
+                padding: EdgeInsets.all(15.adaptSize),
+                decoration: BoxDecoration(
+                  gradient: isVip
+                      ? LinearGradient(
+                          colors: [
+                            Color(0xFFFFD700), // Gold
+                            Color(0xFFFFA500), // Orange gold
+                            Color(0xFFFFD700), // Gold
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        )
+                      : LinearGradient(
+                          colors: [
+                            Color(0xFF6DB9EF), // Light blue
+                            Color(0xFF87CEEB), // Sky blue
+                            Color(0xFF6DB9EF), // Light blue
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isVip
+                          ? Color(0xFFFFD700).withOpacity(0.3)
+                          : Color(0xFF6DB9EF).withOpacity(0.3),
+                      blurRadius: 15,
+                      spreadRadius: 2,
+                      offset: Offset(0, 6),
+                    ),
+                  ],
+                ),
+                margin: EdgeInsets.symmetric(horizontal: 10.h, vertical: 5.v),
+                child: Column(
+                  children: [
+                    // Member Status Header
+                    Container(
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.9),
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
+                          isVip
+                              ? Icon(
+                                  FontAwesomeIcons.crown,
+                                  color: Color(0xFFB8860B),
+                                  size: 20,
+                                )
+                              : Icon(
+                                  Icons.stars,
+                                  color: Color(0xFF4682B4),
+                                  size: 20,
+                                ),
+                          SizedBox(width: 8),
                           Text(
-                            "Your Points",
-                            style: GoogleFonts.poppins(
-                              color: Colors.white,
-                              fontSize: 14.adaptSize,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          SizedBox(height: 5),
-                          Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(15),
-                              border: Border.all(
-                                color: Colors.white.withOpacity(0.3),
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              value != null &&
-                                      value.isNotEmpty &&
-                                      value[0].isNotEmpty
-                                  ? value[0]
-                                  : '0',
-                              style: GoogleFonts.poppins(
-                                color: Colors.white,
-                                fontSize: 28.adaptSize,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            isVip ? "VIP MEMBER" : "BASIC MEMBER",
+                            style: TextStyle(
+                              color:
+                                  isVip ? Color(0xFFB8860B) : Color(0xFF4682B4),
+                              fontSize: 12.adaptSize,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.2,
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(width: 10),
+                    ),
+                    SizedBox(height: 15),
 
-                      // Progress or VIP Crown
-                      if (!isVip) ...[
-                        Container(
-                          width: 2,
-                          height: 80,
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withOpacity(0.3),
-                                Colors.white.withOpacity(0.7),
-                                Colors.white.withOpacity(0.3),
-                              ],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
-                          ),
-                        ),
+                    // Points Section
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
                         Column(
                           children: [
-                            Icon(
-                              Icons.trending_up,
-                              color: Colors.white,
-                              size: 24,
-                            ),
-                            SizedBox(height: 5),
                             Text(
-                              "To VIP",
-                              style: GoogleFonts.poppins(
+                              "Your Points",
+                              style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 14.adaptSize,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
                             SizedBox(height: 5),
                             Container(
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 6),
+                                  horizontal: 20, vertical: 8),
                               decoration: BoxDecoration(
                                 color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                "${1500 - int.parse(value![0])}",
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                            Text(
-                              "points left",
-                              style: GoogleFonts.poppins(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 10,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ] else ...[
-                        Column(
-                          children: [
-                            Container(
-                              padding: EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                shape: BoxShape.circle,
+                                borderRadius: BorderRadius.circular(15),
                                 border: Border.all(
                                   color: Colors.white.withOpacity(0.3),
-                                  width: 2,
+                                  width: 1,
                                 ),
                               ),
-                              child: Icon(
-                                Icons.workspace_premium,
-                                color: Colors.white,
-                                size: 30,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 12, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
                               child: Text(
-                                "VIP",
-                                style: GoogleFonts.poppins(
+                                value != null &&
+                                        value.isNotEmpty &&
+                                        value[0].isNotEmpty
+                                    ? value[0]
+                                    : '0',
+                                style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 12,
+                                  fontSize: 28.adaptSize,
                                   fontWeight: FontWeight.bold,
-                                  letterSpacing: 1.5,
                                 ),
                               ),
                             ),
                           ],
                         ),
-                      ],
-                    ],
-                  ),
+                        SizedBox(width: 10),
 
-                  if (!isVip) ...[
-                    SizedBox(height: 15),
-                    Container(
-                      width: double.infinity,
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        // Progress or VIP Crown
+                        if (!isVip) ...[
+                          Container(
+                            width: 2,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.white.withOpacity(0.3),
+                                  Colors.white.withOpacity(0.7),
+                                  Colors.white.withOpacity(0.3),
+                                ],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                            ),
+                          ),
+                          Column(
                             children: [
+                              Icon(
+                                Icons.trending_up,
+                                color: Colors.white,
+                                size: 24,
+                              ),
+                              SizedBox(height: 5),
                               Text(
-                                'Silver',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white.withOpacity(0.8),
-                                  fontSize: 10.adaptSize,
-                                  fontWeight: FontWeight.w500,
+                                "To VIP",
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              SizedBox(height: 5),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 6),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  "${1500 - int.parse(value![0])}",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 20,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
                               Text(
-                                'VIP',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white.withOpacity(0.8),
-                                  fontSize: 10.adaptSize,
+                                "points left",
+                                style: TextStyle(
+                                  color: Colors.white.withOpacity(0.9),
+                                  fontSize: 10,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ],
                           ),
-                          SizedBox(height: 8),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(10),
-                            child: Container(
-                              height: 8,
-                              child: LinearProgressIndicator(
-                                value: (value != null && value.isNotEmpty)
-                                    ? (double.tryParse(value[0]) ?? 0) / 1500
-                                    : 0,
-                                backgroundColor: Colors.white.withOpacity(0.3),
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white.withOpacity(0.8),
+                        ] else ...[
+                          Column(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.3),
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Icon(
+                                  Icons.workspace_premium,
+                                  color: Colors.white,
+                                  size: 30,
+                                ),
+                              ),
+                              SizedBox(height: 8),
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                    horizontal: 12, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  "VIP",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
+
+                    if (!isVip) ...[
+                      SizedBox(height: 15),
+                      Container(
+                        width: double.infinity,
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Silver',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 10.adaptSize,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  'VIP',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.8),
+                                    fontSize: 10.adaptSize,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(height: 8),
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Container(
+                                height: 8,
+                                child: LinearProgressIndicator(
+                                  value: (value != null && value.isNotEmpty)
+                                      ? (double.tryParse(value[0]) ?? 0) / 1500
+                                      : 0,
+                                  backgroundColor:
+                                      Colors.white.withOpacity(0.3),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white.withOpacity(0.8),
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
             )
           : Container(

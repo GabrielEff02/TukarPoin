@@ -1,40 +1,30 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
-import 'package:e_commerce/screen/gabriel/checkouts/shopping_cart_screen/shopping_cart_screen.dart';
-import 'package:e_commerce/screen/gabriel/checkouts/show_items_screen/show_items_screen.dart';
-import 'package:e_commerce/screen/home/landing_home.dart';
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:e_commerce/api/api.dart';
 import 'package:e_commerce/constant/dialog_constant.dart';
-import 'package:e_commerce/screen/auth/splash_screen.dart';
-import 'package:e_commerce/screen/gabriel/checkouts/shopping_cart_screen/shopping_cart_controller/shopping_cart_controller.dart';
+import 'package:e_commerce/screen/gabriel/checkouts/show_items_screen/show_items_screen.dart';
 import 'package:e_commerce/screen/gabriel/core/app_export.dart';
+import 'package:e_commerce/screen/home/landing_home.dart';
 import 'package:e_commerce/screen/ocr_ktp/controller/kecamatan_controller.dart';
 import 'package:e_commerce/screen/ocr_ktp/controller/kelurahan_controller.dart';
 import 'package:e_commerce/screen/ocr_ktp/controller/kota_controller.dart';
 import 'package:e_commerce/screen/ocr_ktp/controller/province_controller.dart';
-import 'package:e_commerce/screen/ocr_ktp/identifier_ocr.dart';
 import 'package:e_commerce/screen/ocr_ktp/model/kecamatan_model.dart';
-import 'package:e_commerce/screen/ocr_ktp/model/kelurahan_model.dart';
 import 'package:e_commerce/screen/ocr_ktp/model/kota_model.dart';
 import 'package:e_commerce/screen/ocr_ktp/model/ocr_result_model.dart';
 import 'package:e_commerce/screen/ocr_ktp/model/provinsi_model.dart';
-import 'package:e_commerce/screen/ocr_ktp/widget/image_picker.dart';
 import 'package:e_commerce/screen/ocr_ktp/widget/textfield.dart';
-import 'package:e_commerce/utils/local_data.dart';
-// import 'package:mnc_identifier_ocr/mnc_identifier_ocr.dart';
 
 class KtpOCR extends StatefulWidget {
-  late bool isCheckout;
+  bool isCheckout = false;
   KtpOCR({
     Key? key,
     Map<String, dynamic>? postTransaction,
     List<dynamic>? postDetail,
-  }) : isCheckout = false;
+    this.isCheckout = false,
+  });
 
   @override
   State<KtpOCR> createState() => _KtpOCRState();
@@ -144,200 +134,6 @@ class _KtpOCRState extends State<KtpOCR> {
       pekerjaanController.text = data['pekerjaan'];
       kewarganegaraanController.value = data['kewarganegaraan'];
     });
-  }
-
-  Future<void> scanKtp() async {
-    OcrResultModel? res;
-    try {
-      res = await MncIdentifierOcr.startCaptureKtp(
-          withFlash: true, cameraOnly: true);
-
-      if (!mounted) return;
-      setState(() {
-        result.value = res;
-      });
-    } catch (e) {
-      debugPrint('something goes wrong $e');
-    }
-    if (result.value != null) {
-      final data = result.value!.ktp!.toMap();
-      var selectedProvince;
-      var selectedCity;
-      var selectedKecamatan;
-
-      // province
-
-      final prov =
-          findClosestMatch(data['provinsi'], provinceController.provinces);
-      for (ProvinsiElement province in provinceController.provinces) {
-        if (province.name.toUpperCase() == prov!.toUpperCase()) {
-          selectedProvince = province;
-        }
-      }
-      setState(() {
-        provinceController.selectedProvince.value = selectedProvince;
-      });
-      // city
-      await cityController.fetchCities(selectedProvince.id);
-      final finalCity = findClosestMatch(data['kabKot'], cityController.cities);
-      for (City city in cityController.cities) {
-        if (city.name.toUpperCase() == finalCity!.toUpperCase()) {
-          selectedCity = city;
-        }
-      }
-      setState(() {
-        cityController.selectedCity.value = selectedCity;
-      });
-
-      await kecamatanControl.fetchKecamatanModel(selectedCity.id);
-      for (Kecamatan kecamatan in kecamatanControl.kecamatanModel.kecamatan) {
-        final finalKec = findClosestMatch(
-            data['kecamatan'], kecamatanControl.kecamatanModel.kecamatan);
-        if (kecamatan.nama.toUpperCase() == finalKec!.toUpperCase()) {
-          selectedKecamatan = kecamatan;
-        }
-      }
-      setState(() {
-        kecamatanControl.selectedKecamatan = selectedKecamatan.id;
-        kecamatanControl.selectedKecamatanName = selectedKecamatan.nama;
-      });
-      await kelurahanControl.fetchKelurahanModel(selectedKecamatan.id);
-      final kelurahanFinal = findClosestMatch(
-          data['kelurahan'], kelurahanControl.kelurahanModel.kelurahan);
-      for (Kelurahan keluarahan in kelurahanControl.kelurahanModel.kelurahan) {
-        if (keluarahan.nama.toUpperCase() == kelurahanFinal!.toUpperCase()) {
-          data['kelurahan'] = keluarahan.nama;
-        }
-      }
-      setState(() {
-        nikController.text = data['nik'] ?? nikController.text;
-        nameController.text = data['nama'] ?? nameController.text;
-        tempatlahirController.text =
-            data['tempatLahir'] ?? tempatlahirController.text;
-        tgllahirController.text = data['tglLahir'] ?? tgllahirController.text;
-        jenisKelaminController.value =
-            data['jenisKelamin'] == 'laki-laki' ? 'L' : 'P';
-        golDarahController.value = data['golDarah'] ?? golDarahController.value;
-        alamatController.text = data['alamat'] ?? alamatController.text;
-        rtController.text = data['rt'] ?? rtController.text;
-        rwController.text = data['rw'] ?? rwController.text;
-
-        kelurahanControl.selectedKelurahan =
-            data['kelurahan'] ?? kelurahanControl.selectedKelurahan;
-        agamaController.value =
-            data['agama'].toUpperCase() ?? agamaController.value;
-        statusPerkawinanController.value =
-            data['statusPerkawinan'].toUpperCase() ??
-                statusPerkawinanController.value;
-        pekerjaanController.text =
-            data['pekerjaan'].toUpperCase() ?? pekerjaanController.text;
-        kewarganegaraanController.value =
-            data['kewarganegaraan'] ?? kewarganegaraanController.value;
-      });
-    }
-    // provinsi
-    // final prov = result.value?.ktp?.provinsi;
-    // final provFinal = findClosestMatch(prov!, provinceController.provinces);
-    // final selectedProvince = provinceController.provinces
-    //     .firstWhere((province) => province.name == provFinal);
-    // provinceController.selectedProvince.value = selectedProvince;
-    // await cityController.fetchCities(selectedProvince.id);
-
-    // // kabupaten/kota
-    // if (provinceController.selectedProvince.value!.name.isNotEmpty &&
-    //     result.value!.ktp!.kabKot != null) {
-    //   final city = result.value?.ktp?.kabKot;
-    //   final cityFinal = findClosestMatch(city!, cityController.cities);
-
-    //   final selectedCity = cityController.cities.firstWhere(
-    //     (city) => city.name == cityFinal,
-    //   );
-    //   cityController.selectedCity.value = selectedCity;
-    //   await kecamatanControl
-    //       .fetchKecamatanModel(cityController.selectedCity.value!.id);
-    //   debugPrint('Error finding city: $cityFinal ');
-
-    //   // Kecamatan
-    //   if (cityController.selectedCity.value!.name.isNotEmpty &&
-    //       result.value!.ktp!.kecamatan != null) {
-    //     final kecamatan = result.value?.ktp?.kecamatan;
-    //     final kecamatanFinal = findClosestMatch(
-    //         kecamatan!, kecamatanControl.kecamatanModel.kecamatan);
-    //     for (Kecamatan kecam in kecamatanControl.kecamatanModel.kecamatan) {
-    //       if (kecam.nama == kecamatanFinal) {
-    //         kecamatanControl.selectedKecamatan = kecam.id;
-    //       }
-    //     }
-    //     await kelurahanControl
-    //         .fetchKelurahanModel(kecamatanControl.selectedKecamatan!);
-
-    //     // Kelurahan
-    //     if (kecamatanControl.selectedKecamatan != 0 &&
-    //         result.value!.ktp!.kelurahan != null) {
-    //       final kelurahan = result.value?.ktp?.kelurahan;
-    //       final kelurahanFinal = findClosestMatch(
-    //           kelurahan!, kelurahanControl.kelurahanModel.kelurahan);
-    //       kelurahanControl.selectedKelurahan = kelurahanFinal;
-    //     }
-    //   }
-    // }
-  }
-
-  int distanceCount(String a, String b) {
-    final List<List<int>> dp = List.generate(
-      a.length + 1,
-      (_) => List.filled(b.length + 1, 0),
-    );
-
-    for (int i = 0; i <= a.length; i++) {
-      dp[i][0] = i;
-    }
-    for (int j = 0; j <= b.length; j++) {
-      dp[0][j] = j;
-    }
-
-    for (int i = 1; i <= a.length; i++) {
-      for (int j = 1; j <= b.length; j++) {
-        final cost = (a[i - 1] == b[j - 1]) ? 0 : 1;
-        dp[i][j] = [
-          dp[i - 1][j] + 1, // Deletion
-          dp[i][j - 1] + 1, // Insertion
-          dp[i - 1][j - 1] + cost, // Substitution
-        ].reduce((value, element) => value < element ? value : element);
-      }
-    }
-    return dp[a.length][b.length];
-  }
-
-  String? findClosestMatch(String input, List<dynamic> candidates) {
-    String? closestMatch;
-    int lowestDistance = 999999;
-    int distance = 0;
-    for (var candidate in candidates) {
-      if (candidate.runtimeType == City ||
-          candidate.runtimeType == ProvinsiElement) {
-        distance = distanceCount(
-          input.toLowerCase(),
-          candidate.name.toLowerCase(),
-        );
-      } else {
-        distance = distanceCount(
-          input.toLowerCase(),
-          candidate.nama.toLowerCase(),
-        );
-      }
-      if (distance < lowestDistance) {
-        lowestDistance = distance;
-        if (candidate.runtimeType == City ||
-            candidate.runtimeType == ProvinsiElement) {
-          closestMatch = candidate.name;
-        } else {
-          closestMatch = candidate.nama;
-        }
-      }
-    }
-
-    return closestMatch;
   }
 
   @override
@@ -543,95 +339,6 @@ class _KtpOCRState extends State<KtpOCR> {
   Column widgetTextField() {
     return Column(
       children: [
-//*Mulai Field Scan KTP
-        Obx(
-          () => result.value != null
-              ? Image.file(
-                  File(
-                    result.value!.imagePath.toString(),
-                  ),
-                )
-              : GestureDetector(
-                  onTap: () {
-                    scanKtp();
-                  },
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 10.adaptSize),
-                    height: 200,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(
-                        color: Colors.grey[300]!,
-                        width: 2.0,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.grey.withOpacity(0.5),
-                          spreadRadius: 2,
-                          blurRadius: 5,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Colors.white,
-                          Colors.grey[100]!,
-                        ],
-                      ),
-                    ),
-                    child: const Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.upload_sharp,
-                          size: 40,
-                          color: Colors.grey,
-                        ),
-                        SizedBox(
-                          height: 12,
-                        ),
-                        Text(
-                          "Unggah KTP Anda disini",
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ),
-        ),
-//*Selesai Unggah KTP
-        const SizedBox(
-          height: 4,
-        ),
-
-        Obx(
-          () => result.value != null
-              ? InkWell(
-                  onTap: () {
-                    scanKtp();
-                  },
-                  child: const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.upload_sharp),
-                      SizedBox(
-                        width: 12,
-                      ),
-                      Text("Unggah Kembali") //*Jika ingin unggah kembali
-                    ],
-                  ),
-                )
-              : const SizedBox(
-                  height: 4,
-                ),
-        ),
-//*Editor TextForm
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: Column(

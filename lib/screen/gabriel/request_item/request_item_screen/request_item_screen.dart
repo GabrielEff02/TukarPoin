@@ -1,8 +1,6 @@
 import 'package:e_commerce/constant/dialog_constant.dart';
 import 'package:e_commerce/screen/gabriel/core/app_export.dart';
 import 'package:get/get.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:flutter/services.dart';
 
 class RequestedItemScreen extends StatefulWidget {
@@ -142,7 +140,7 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
                             children: [
                               Text(
                                 'Request Item',
-                                style: GoogleFonts.poppins(
+                                style: TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
@@ -150,7 +148,7 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
                               ),
                               Text(
                                 'Fill out the form below',
-                                style: GoogleFonts.poppins(
+                                style: TextStyle(
                                   fontSize: 14,
                                   color: Colors.white.withOpacity(0.8),
                                 ),
@@ -210,13 +208,13 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
                                       controller: _productNameController,
                                       decoration: InputDecoration(
                                         labelText: 'Nama Produk',
-                                        labelStyle: GoogleFonts.poppins(
+                                        labelStyle: TextStyle(
                                           color: Colors.grey[600],
                                           fontWeight: FontWeight.w500,
                                         ),
                                         hintText:
                                             'Contoh: MacBook Pro, iPhone 13',
-                                        hintStyle: GoogleFonts.poppins(
+                                        hintStyle: TextStyle(
                                           color: Colors.grey[400],
                                           fontSize: 14,
                                         ),
@@ -251,7 +249,7 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
                                           vertical: 20,
                                         ),
                                       ),
-                                      style: GoogleFonts.poppins(
+                                      style: TextStyle(
                                         color: Colors.grey[800],
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -287,12 +285,12 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
                                       controller: _quantityController,
                                       decoration: InputDecoration(
                                         labelText: 'Quantity',
-                                        labelStyle: GoogleFonts.poppins(
+                                        labelStyle: TextStyle(
                                           color: Colors.grey[600],
                                           fontWeight: FontWeight.w500,
                                         ),
                                         hintText: 'Contoh: 1, 5, 10',
-                                        hintStyle: GoogleFonts.poppins(
+                                        hintStyle: TextStyle(
                                           color: Colors.grey[400],
                                           fontSize: 14,
                                         ),
@@ -331,7 +329,7 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
                                       inputFormatters: [
                                         FilteringTextInputFormatter.digitsOnly,
                                       ],
-                                      style: GoogleFonts.poppins(
+                                      style: TextStyle(
                                         color: Colors.grey[800],
                                         fontWeight: FontWeight.w500,
                                       ),
@@ -396,7 +394,7 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
                                           SizedBox(width: 12),
                                           Text(
                                             'Submit Request',
-                                            style: GoogleFonts.poppins(
+                                            style: TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.w600,
                                               color: Colors.white,
@@ -435,7 +433,7 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
                                       Expanded(
                                         child: Text(
                                           'Your request will be reviewed by our team within 24 hours.',
-                                          style: GoogleFonts.poppins(
+                                          style: TextStyle(
                                             fontSize: 13,
                                             color: Colors.blue[700],
                                             fontWeight: FontWeight.w500,

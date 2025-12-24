@@ -44,7 +44,6 @@ dependencies:
   flutter_svg: ^2.0.10+1
   font_awesome_flutter: ^10.7.0
   barcode: ^2.2.8
-  google_fonts: ^6.2.1
   path_provider: ^2.1.5
   http: ^1.2.2
   smooth_page_indicator: ^1.2.0+3

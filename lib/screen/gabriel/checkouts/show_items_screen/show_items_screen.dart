@@ -45,12 +45,16 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
   }
 
   Future<void> getFullName() async {
-    final names = await LocalData.getData("full_name");
     final points = await LocalData.getData('point');
+    final pointLama = await LocalData.getData('prev_point');
 
     setState(() {
-      name = names;
-      point = int.parse(points);
+      name = int.parse(pointLama) >= int.parse(points)
+          ? 'Anda menggunakan Poin Periode Sebelumnya'
+          : 'Anda menggunakan poin periode saat ini';
+      point = int.parse(pointLama) >= int.parse(points)
+          ? int.parse(pointLama)
+          : int.parse(points);
     });
     await _sortInitialData();
   }
@@ -101,7 +105,10 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
     }
   }
 
-  void _onQuantityChanged(dynamic updatedData) {
+  void _onQuantityChanged(dynamic updatedData) async {
+    final points = await LocalData.getData('point');
+    final pointLama = await LocalData.getData('prev_point');
+
     setState(() {
       int index = displayedItems
           .indexWhere((item) => (item['kode']) == updatedData['kode']);
@@ -125,6 +132,12 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
               sum +
               (int.tryParse(item['price'].toString()) ?? 0) *
                   (int.tryParse(item['quantity_selected'].toString()) ?? 0));
+      name = int.parse(pointLama) >= totalPrice
+          ? 'Anda menggunakan poin periode sebelumnya'
+          : 'Anda menggunakan poin periode saat ini';
+      point = int.parse(pointLama) >= totalPrice
+          ? int.parse(pointLama)
+          : int.parse(points);
     });
   }
 
@@ -138,9 +151,9 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
       appBar: WidgetHelper.appbarWidget(
         () => Get.back(),
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text("Hello $name!!!", style: CustomTextStyle.titleSmallBlack900),
+          Text(name, style: CustomTextStyle.titleSmallBlack900),
           Text(
-            'Points: ${currencyFormatter.format(point)}',
+            'Point: ${currencyFormatter.format(point)}',
             style: CustomTextStyle.titleSmallBlack900,
           )
         ]),
