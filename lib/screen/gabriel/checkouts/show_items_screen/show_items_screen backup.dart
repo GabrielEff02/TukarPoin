@@ -180,7 +180,7 @@ class _ShowItemsScreenBackupState extends State<ShowItemsScreenBackup> {
     return Scaffold(
       backgroundColor: appTheme.whiteA700,
       appBar: WidgetHelper.appbarWidget(
-          () => Get.back(),
+          function: () => Get.back(),
           Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text("Hello $name!!!", style: CustomTextStyle.titleSmallBlack900),
             Text(

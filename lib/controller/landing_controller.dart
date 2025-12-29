@@ -101,7 +101,18 @@ class _CarouselWidgetState extends State<CarouselWidget>
                 children: [
                   Container(
                     margin: const EdgeInsets.only(),
-                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12.0),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black26,
+                          blurRadius: 6.0,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    clipBehavior: Clip.hardEdge,
+                    width: MediaQuery.of(context).size.width * .85,
                     height: 150,
                     child: PageView.builder(
                       controller: controller.pageController,

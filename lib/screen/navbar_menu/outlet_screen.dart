@@ -81,16 +81,9 @@ class _OutletScreenState extends State<OutletScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF2196F3),
-              Color(0xFF1976D2),
-              Color(0xFF0D47A1),
-            ],
-          ),
+        decoration: BoxDecoration(
+          image: DecorationImage(
+              image: AssetImage('assets/images/bg_all.png'), fit: BoxFit.fill),
         ),
         child: SafeArea(
           child: Column(

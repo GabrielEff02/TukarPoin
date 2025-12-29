@@ -102,14 +102,8 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
-            ],
-          ),
+          image: DecorationImage(
+              image: AssetImage('assets/images/bg_all.png'), fit: BoxFit.fill),
         ),
         child: SafeArea(
           child: Column(
@@ -224,8 +218,8 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
                                           decoration: BoxDecoration(
                                             gradient: LinearGradient(
                                               colors: [
-                                                Color(0xFF667eea),
-                                                Color(0xFF764ba2)
+                                                Colors.orangeAccent,
+                                                Colors.deepOrange,
                                               ],
                                             ),
                                             borderRadius:
@@ -300,8 +294,8 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
                                           decoration: BoxDecoration(
                                             gradient: LinearGradient(
                                               colors: [
-                                                Color(0xFF667eea),
-                                                Color(0xFF764ba2)
+                                                Colors.orangeAccent,
+                                                Colors.deepOrange,
                                               ],
                                             ),
                                             borderRadius:
@@ -358,8 +352,8 @@ class _RequestedItemScreenState extends State<RequestedItemScreen>
                                     decoration: BoxDecoration(
                                       gradient: LinearGradient(
                                         colors: [
-                                          Color(0xFF667eea),
-                                          Color(0xFF764ba2)
+                                          Colors.orangeAccent,
+                                          Colors.deepOrange,
                                         ],
                                       ),
                                       borderRadius: BorderRadius.circular(16),

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:e_commerce/constant/dialog_constant.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
@@ -144,33 +145,91 @@ class _ItemScreenState extends State<ItemScreen> {
                           ),
                         ),
                         const SizedBox(height: 8),
-                        // Price
                         Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              'Point: ${widget.data['price'] is int ? currencyFormatter.format(widget.data['price'] ?? 0) : currencyFormatter.format(int.tryParse(widget.data['price']) ?? 0)}',
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.deepPurple,
-                              ),
+                            // Price
+                            Row(
+                              children: [
+                                Container(
+                                  decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.amber),
+                                  child: Icon(
+                                    Icons.star,
+                                    color: Colors.white,
+                                    size: 18,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                Text(
+                                  '${widget.data['price'] is int ? currencyFormatter.format(widget.data['price'] ?? 0) : currencyFormatter.format(int.tryParse(widget.data['price']) ?? 0)}',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.deepPurple,
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Quantity
-                        Row(
-                          children: [
-                            Icon(Icons.inventory, color: Colors.black54),
-                            const SizedBox(width: 5),
-                            Text(
-                              'Quantity: ${((widget.data['quantity'] is int ? widget.data['quantity'] : int.tryParse(widget.data['quantity']) ?? 0) == 0) ? 'Habis' : widget.data['quantity'] ?? 0}',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                                color: Colors.black87,
-                              ),
+                            // Quantity
+                            Row(
+                              children: [
+                                Icon(FontAwesomeIcons.boxesStacked,
+                                    color: Colors.black54),
+                                const SizedBox(width: 10),
+                                Text(
+                                  '${(widget.data['quantity'] == 0) ? 'Habis' : widget.data['quantity'] ?? 0}',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w500,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                              ],
                             ),
+                            // Row(
+                            //   children: (int.tryParse(widget.data['quantity']
+                            //                   .toString()) ??
+                            //               0) ==
+                            //           0
+                            //       ? [
+                            //           Text(
+                            //             'Mohon Maaf Stok Habis',
+                            //             style: TextStyle(
+                            //               fontSize: 16,
+                            //               color: Colors.black87,
+                            //             ),
+                            //           ),
+                            //         ]
+                            //       : [
+                            //           Text(
+                            //             'Tersisa',
+                            //             style: TextStyle(
+                            //               fontSize: 16,
+                            //               color: Colors.black87,
+                            //             ),
+                            //           ),
+                            //           const SizedBox(width: 5),
+                            //           Text(
+                            //             widget.data['quantity'].toString(),
+                            //             style: TextStyle(
+                            //               fontSize: 16,
+                            //               fontWeight: FontWeight.bold,
+                            //               color: Colors.black87,
+                            //             ),
+                            //           ),
+                            //           const SizedBox(width: 5),
+                            //           Text(
+                            //             'lagi',
+                            //             style: TextStyle(
+                            //               fontSize: 16,
+                            //               color: Colors.black87,
+                            //             ),
+                            //           ),
+                            //         ],
+                            // )
                           ],
                         ),
                         const SizedBox(height: 12),
@@ -261,138 +320,108 @@ class _ItemScreenState extends State<ItemScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Center(
-                      child: Text(
-                        'Pilih Jumlah Stok',
-                        style: TextStyle(
-                            fontSize: 20.adaptSize,
-                            fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    SizedBox(height: 20.adaptSize),
-                    Text(
-                      name,
-                      style: TextStyle(
-                          fontSize: 18.adaptSize, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 10.adaptSize),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Stok: $maxValue",
-                              style: TextStyle(
-                                fontSize: 16.adaptSize,
-                              ),
-                            ),
-                            Text(
-                              "Point: ${currencyFormatter.format(price * jumlah)}",
-                              style: TextStyle(
-                                  fontSize: 16.adaptSize, color: Colors.blue),
-                            ),
-                          ],
-                        ),
-                        Row(
-                          children: [
-                            ElevatedButton(
-                              onPressed: () {
-                                if (jumlah >= 1) {
-                                  updateJumlah(jumlah - 1);
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                shape: CircleBorder(),
-                                padding: EdgeInsets.all(8.adaptSize),
-                                backgroundColor: Colors.grey[300],
-                              ),
-                              child: Icon(Icons.remove, color: Colors.black),
-                            ),
-                            SizedBox(width: 5.adaptSize),
-                            SizedBox(
-                              width: 40,
-                              child: TextField(
-                                controller: jumlahController,
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.digitsOnly
-                                ],
-                                textAlign: TextAlign.center,
-                                keyboardType: TextInputType.number,
-                                style: TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.bold),
-                                onChanged: (value) {
-                                  int? val = int.tryParse(value);
-                                  if (val != null && val > 0) {
-                                    if (val > maxValue) {
-                                      updateJumlah(maxValue);
-                                    } else {
-                                      updateJumlah(val);
-                                    }
+                        Container(
+                          decoration: BoxDecoration(
+                            color: const Color.fromARGB(106, 239, 138, 30),
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                          child: Row(
+                            children: [
+                              ElevatedButton(
+                                onPressed: () {
+                                  if (jumlah >= 1) {
+                                    updateJumlah(jumlah - 1);
                                   }
                                 },
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      EdgeInsets.symmetric(vertical: 8),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                style: ElevatedButton.styleFrom(
+                                  shape: CircleBorder(),
+                                  padding: EdgeInsets.all(8.adaptSize),
+                                  backgroundColor: const Color(0xFFF0830F),
+                                ),
+                                child: Icon(Icons.remove, color: Colors.white),
+                              ),
+                              Container(
+                                width: 40,
+                                child: TextField(
+                                  controller: jumlahController,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly
+                                  ],
+                                  textAlign: TextAlign.center,
+                                  keyboardType: TextInputType.number,
+                                  style: TextStyle(
+                                      fontSize: 16.adaptSize,
+                                      fontWeight: FontWeight.bold),
+                                  onChanged: (value) {
+                                    int? val = int.tryParse(value);
+                                    if (val != null && val > 0) {
+                                      if (val > maxValue) {
+                                        updateJumlah(maxValue);
+                                      } else {
+                                        updateJumlah(val);
+                                      }
+                                    }
+                                  },
+                                  decoration: InputDecoration(
+                                    contentPadding: EdgeInsets.symmetric(
+                                        vertical: 8.adaptSize),
                                   ),
                                 ),
                               ),
-                            ),
-                            SizedBox(width: 5.adaptSize),
-                            ElevatedButton(
-                              onPressed: () {
-                                if (jumlah >= maxValue) {
-                                  updateJumlah(maxValue);
-                                } else {
-                                  updateJumlah(jumlah + 1);
-                                }
-                              },
-                              style: ElevatedButton.styleFrom(
-                                shape: CircleBorder(),
-                                padding: EdgeInsets.all(8.adaptSize),
-                                backgroundColor: Colors.grey[300],
+                              ElevatedButton(
+                                onPressed: () {
+                                  if (jumlah >= maxValue) {
+                                    updateJumlah(maxValue);
+                                  } else {
+                                    updateJumlah(jumlah + 1);
+                                  }
+                                },
+                                style: ElevatedButton.styleFrom(
+                                  shape: CircleBorder(),
+                                  padding: EdgeInsets.all(8.adaptSize),
+                                  backgroundColor: const Color(0xFFF0830F),
+                                ),
+                                child: Icon(Icons.add, color: Colors.white),
                               ),
-                              child: Icon(Icons.add, color: Colors.black),
-                            ),
-                          ],
+                            ],
+                          ),
+                        ),
+                        ElevatedButton(
+                          onPressed: () async {
+                            Map<String, dynamic> cardData = {};
+                            if (await LocalData.containsKey('cart')) {
+                              cardData =
+                                  jsonDecode(await LocalData.getData('cart'));
+                            }
+                            final compan =
+                                await LocalData.getData('compan_code');
+                            for (int i = 0; i < jumlah; i++) {
+                              cardData
+                                  .putIfAbsent(compan, () => [])
+                                  .add(widget.data['kode']);
+                            }
+                            LocalData.saveData('cart', jsonEncode(cardData));
+                            Get.back();
+                            Get.toNamed(AppRoutes.showItemsScreen);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFF0830F),
+                            padding: EdgeInsets.symmetric(
+                                vertical: 8.adaptSize,
+                                horizontal: 12.adaptSize),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(25)),
+                          ),
+                          child: Text('Add to cart',
+                              style: TextStyle(
+                                  fontSize: 16.adaptSize, color: Colors.white)),
                         ),
                       ],
                     ),
-                    SizedBox(height: 30),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          Map<String, dynamic> cardData = {};
-                          if (await LocalData.containsKey('cart')) {
-                            cardData =
-                                jsonDecode(await LocalData.getData('cart'));
-                          }
-                          final compan = await LocalData.getData('compan_code');
-                          for (int i = 0; i < jumlah; i++) {
-                            cardData
-                                .putIfAbsent(compan, () => [])
-                                .add(widget.data['kode']);
-                          }
-
-                          LocalData.saveData('cart', jsonEncode(cardData));
-                          Get.back();
-                          Get.toNamed(AppRoutes.showItemsScreen);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          padding: EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                        child:
-                            Text('Konfirmasi', style: TextStyle(fontSize: 18)),
-                      ),
-                    )
                   ],
                 ),
               ),

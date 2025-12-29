@@ -1,4 +1,6 @@
+import 'package:e_commerce/screen/gabriel/core/app_export.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfx/pdfx.dart';
 import 'dart:io';
@@ -44,7 +46,13 @@ class _AboutUsScreenState extends State<AboutUsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("About Us")),
+      appBar: WidgetHelper.appbarWidget(
+        function: () => Get.back(),
+        Text(
+          'About Us',
+          style: TextStyle(fontSize: 24, color: Colors.white),
+        ),
+      ),
       body: localPath == null || _pdfController == null
           ? const Center(child: CircularProgressIndicator())
           : PdfViewPinch(controller: _pdfController!),

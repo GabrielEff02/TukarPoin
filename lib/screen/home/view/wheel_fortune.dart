@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:e_commerce/constant/dialog_constant.dart';
 import 'package:e_commerce/screen/gabriel/core/app_export.dart';
 import 'dart:math' as math;
 import 'package:http/http.dart' as http;
@@ -210,7 +209,7 @@ class _WheelFortuneState extends State<WheelFortune>
     return Align(
       alignment: Alignment.topCenter,
       child: Container(
-        margin: const EdgeInsets.only(left: 20, top: 50, right: 20),
+        margin: const EdgeInsets.only(left: 20, top: 25, right: 20),
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(8)),
@@ -220,8 +219,8 @@ class _WheelFortuneState extends State<WheelFortune>
           ),
           gradient: const LinearGradient(
             colors: [
-              Color.fromARGB(255, 91, 0, 107),
-              Color.fromARGB(255, 235, 42, 203),
+              Color.fromARGB(255, 124, 45, 18),
+              Color.fromARGB(255, 234, 88, 12),
             ],
             begin: Alignment.bottomLeft,
             end: Alignment.topRight,
@@ -234,7 +233,7 @@ class _WheelFortuneState extends State<WheelFortune>
               judul,
               style: TextStyle(
                 fontSize: 19,
-                color: Colors.yellowAccent,
+                color: Colors.white,
               ),
             ),
             _spendingInfoButton(),
@@ -250,81 +249,180 @@ class _WheelFortuneState extends State<WheelFortune>
       builder: (BuildContext context) {
         return AlertDialog(
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
+            borderRadius: BorderRadius.circular(20),
           ),
-          backgroundColor: Colors.white, // White background
-          title: Row(
-            children: [
-              const Icon(
-                Icons.info_outline,
-                color: Colors.yellowAccent, // Blue
-                size: 30,
+          backgroundColor: Colors.transparent,
+          contentPadding: EdgeInsets.zero,
+          content: Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [
+                  Color(0xFFFF6B35), // Orange terang
+                  Color(0xFFFF8C42), // Orange medium
+                  Color(0xFFFFA726), // Orange cerah
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-              const SizedBox(width: 10),
-              const Text(
-                "Info Kesempatan Undi",
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.yellowAccent, // Blue
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.orange.withOpacity(0.4),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
                 ),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color.fromARGB(255, 137, 35, 155),
-                      Color.fromARGB(255, 235, 42, 203),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      ketentuan,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      textAlign: TextAlign.center,
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(20),
+                      topRight: Radius.circular(20),
                     ),
-                    const SizedBox(height: 12),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFF4CAF50), // Green
-                            Color(0xFF66BB6A), // Light Green
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        "🎯 Belanja lebih banyak = Lebih banyak kesempatan!",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
+                        child: const Icon(
+                          Icons.emoji_events,
+                          color: Color(0xFFFF6B35),
+                          size: 28,
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      const Expanded(
+                        child: Text(
+                          "Info Kesempatan Undi",
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+
+                // Content
+                Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      // Info Box
+                      Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: [
+                            Text(
+                              ketentuan,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                color: Color(0xFF2D3436),
+                                fontWeight: FontWeight.w600,
+                                height: 1.5,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 16),
+                            // Divider decorative
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    height: 1,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.orange.withOpacity(0.3),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const Padding(
+                                  padding: EdgeInsets.symmetric(horizontal: 12),
+                                  child: Text(
+                                    "✨",
+                                    style: TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                                Expanded(
+                                  child: Container(
+                                    height: 1,
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        colors: [
+                                          Colors.orange.withOpacity(0.3),
+                                          Colors.transparent,
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Close button
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: TextButton.styleFrom(
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 32,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(25),
+                          ),
+                        ),
+                        child: const Text(
+                          "Mengerti",
+                          style: TextStyle(
+                            color: Color(0xFFFF6B35),
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
@@ -350,14 +448,28 @@ class _WheelFortuneState extends State<WheelFortune>
   }
 
   Widget _chanceRemaining() {
-    return Padding(
-      padding: const EdgeInsets.all(20.0),
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Colors.orangeAccent,
+          width: 2,
+        ),
+        gradient: const LinearGradient(
+          colors: [
+            Color.fromARGB(255, 124, 45, 18),
+            Color.fromARGB(255, 234, 88, 12),
+          ],
+          begin: Alignment.bottomLeft,
+          end: Alignment.topRight,
+        ),
+      ),
+      padding: const EdgeInsets.all(15.0),
       child: Text(
-        "Remaining Chances: $chances",
+        "Kesempatan: $chances",
         style: TextStyle(
           fontSize: 20,
-          color: Colors.orangeAccent,
-          fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
       ),
     );
@@ -365,74 +477,71 @@ class _WheelFortuneState extends State<WheelFortune>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        height: double.infinity,
-        width: double.infinity,
-        decoration: const BoxDecoration(
-          image: DecorationImage(
-            image: NetworkImage(
-                "https://i.pinimg.com/736x/e7/3a/b8/e73ab8cbf6752d9523558f9c2c63da78.jpg"),
-            fit: BoxFit.cover,
-          ),
+    return Container(
+      height: double.infinity,
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        image: DecorationImage(
+          image: NetworkImage(
+              "https://i.pinimg.com/736x/e7/3a/b8/e73ab8cbf6752d9523558f9c2c63da78.jpg"),
+          fit: BoxFit.fill,
         ),
-        child: SingleChildScrollView(
-          child: status && (mounted)
-              ? Column(
-                  children: [
-                    _spiningTitle(),
-                    SizedBox(height: 10),
-                    Center(
-                      child: Container(
-                        padding: const EdgeInsets.only(
-                            top: 38, left: 30, right: 30, bottom: 20),
-                        width: MediaQuery.of(context).size.width * 0.9,
-                        height: MediaQuery.of(context).size.height * 0.5,
-                        decoration: const BoxDecoration(
-                            image: DecorationImage(
-                          fit: BoxFit.contain,
-                          image: AssetImage("assets/images/belt.png"),
-                        )),
-                        child: InkWell(
-                          onTap: () {
-                            if (!isSpinning && chances > 0) {
-                              _spin();
-                              isSpinning = true;
-                              chances--;
-                              LocalData.saveData('chance', chances.toString());
-                            } else if (chances == 0) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('No chances left!')),
-                              );
-                            }
-                          },
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              AnimatedBuilder(
-                                animation: _animation,
-                                builder: (context, child) {
-                                  return Transform.rotate(
-                                    angle: _animation.value,
-                                    child: CustomPaint(
-                                      size: const Size(300, 300),
-                                      painter: WheelPainter(items: items),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
+      ),
+      child: SingleChildScrollView(
+        child: status && (mounted)
+            ? Column(
+                children: [
+                  _spiningTitle(),
+                  SizedBox(height: 10),
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.only(
+                          top: 38, left: 30, right: 30, bottom: 20),
+                      width: MediaQuery.of(context).size.width * 0.9,
+                      height: MediaQuery.of(context).size.height * 0.5,
+                      decoration: const BoxDecoration(
+                          image: DecorationImage(
+                        fit: BoxFit.contain,
+                        image: AssetImage("assets/images/belt.png"),
+                      )),
+                      child: InkWell(
+                        onTap: () {
+                          if (!isSpinning && chances > 0) {
+                            _spin();
+                            isSpinning = true;
+                            chances--;
+                            LocalData.saveData('chance', chances.toString());
+                          } else if (chances == 0) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('No chances left!')),
+                            );
+                          }
+                        },
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            AnimatedBuilder(
+                              animation: _animation,
+                              builder: (context, child) {
+                                return Transform.rotate(
+                                  angle: _animation.value,
+                                  child: CustomPaint(
+                                    size: const Size(300, 300),
+                                    painter: WheelPainter(items: items),
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
                         ),
                       ),
                     ),
-                    SizedBox(height: 10),
-                    _chanceRemaining(),
-                  ],
-                )
-              : Container(),
-        ),
+                  ),
+                  SizedBox(height: 10),
+                  _chanceRemaining(),
+                ],
+              )
+            : Container(),
       ),
     );
   }

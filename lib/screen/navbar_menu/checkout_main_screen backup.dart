@@ -103,7 +103,7 @@ class _CheckoutMainScreenBackupState extends State<CheckoutMainScreenBackup> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: WidgetHelper.appbarWidget(() {
+      appBar: WidgetHelper.appbarWidget(function: () {
         Get.back();
       }, Text('Redeem'), actions: [
         DropdownButton<String>(

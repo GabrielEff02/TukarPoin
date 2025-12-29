@@ -85,14 +85,10 @@ class _SecurityScreenState extends State<SecurityScreen> {
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
-            ],
-          ),
+          image: DecorationImage(
+              opacity: 0.85,
+              image: AssetImage('assets/images/bg_theme.png'),
+              repeat: ImageRepeat.repeat),
         ),
         child: SafeArea(
           child: Column(
@@ -104,7 +100,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                   children: [
                     Container(
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: Colors.orange.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: IconButton(
@@ -114,7 +110,7 @@ class _SecurityScreenState extends State<SecurityScreen> {
                     ),
                     SizedBox(width: 16),
                     Text(
-                      'Keamanan Akun',
+                      'Ubah Kata Sandi',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 20,
@@ -149,16 +145,6 @@ class _SecurityScreenState extends State<SecurityScreen> {
                           ),
                           SizedBox(height: 30),
                           // Title with modern styling
-                          Text(
-                            'Ubah Kata Sandi',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF2D3748),
-                              letterSpacing: -0.5,
-                            ),
-                          ),
-                          SizedBox(height: 12),
                           Text(
                             'Masukkan kata sandi baru dan kode verifikasi untuk mengamankan akun Anda.',
                             style: TextStyle(

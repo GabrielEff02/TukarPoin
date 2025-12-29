@@ -13,8 +13,6 @@ import 'package:e_commerce/screen/ocr_ktp/view/home.dart';
 import 'package:e_commerce/screen/srg/security_screen.dart';
 import 'package:get/get.dart';
 
-import 'screen/navbar_menu/checkout_main_screen.dart';
-
 class NavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -63,11 +61,7 @@ class NavBar extends StatelessWidget {
           //   onTap: () => mainCheckouts(),
           // ),
           Divider(),
-          ListTile(
-            leading: Icon(Icons.book),
-            title: Text('Redeem your points'),
-            onTap: () => Get.to(() => CheckoutMainScreen()),
-          ),
+
           ListTile(
             leading: Icon(Icons.request_page),
             title: Text('Request Item'),

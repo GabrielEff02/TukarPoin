@@ -1,4 +1,6 @@
 import 'package:e_commerce/screen/gabriel/core/app_export.dart';
+import 'package:get/route_manager.dart';
+import 'package:get/utils.dart';
 
 class OthersScreen extends StatefulWidget {
   @override
@@ -183,9 +185,10 @@ class _OthersScreenState extends State<OthersScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Others Screen'),
-      ),
+      appBar: WidgetHelper.appbarWidget(
+          function: () => Get.back(),
+          Text('Terms & Conditions',
+              style: TextStyle(fontSize: 24, color: Colors.white))),
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(16.0),

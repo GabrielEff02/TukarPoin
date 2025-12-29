@@ -62,17 +62,16 @@ class _RequestHistoryScreenState extends State<RequestHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey.shade100,
-      appBar: AppBar(
-        foregroundColor: Colors.white,
-        title: Text('Daftar Permintaan Produk',
-            style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.blueAccent.shade700,
-        elevation: 4,
-        shadowColor: Colors.blueAccent.shade100,
+      appBar: WidgetHelper.appbarWidget(
+        Text('Daftar Permintaan ', style: TextStyle(color: Colors.white)),
+        function: () => Get.back(),
         actions: [
           IconButton(
               onPressed: () => Get.to(() => RequestedItemScreen()),
-              icon: Icon(Icons.request_page))
+              icon: Icon(
+                Icons.request_page,
+                color: Colors.white,
+              ))
         ],
       ),
       body: RefreshIndicator(

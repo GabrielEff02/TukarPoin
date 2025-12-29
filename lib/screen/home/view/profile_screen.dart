@@ -1,11 +1,10 @@
 import 'package:e_commerce/constant/dialog_constant.dart';
-import 'package:e_commerce/constant/text_constant.dart';
+import 'package:e_commerce/screen/ocr_ktp/view/home.dart';
 
 import '../../../screen/gabriel/core/app_export.dart';
 import 'package:get/get.dart';
 
 import '../../../screen/auth/login_screen.dart';
-import '../../navbar_menu/contact_screen.dart';
 import '../../../screen/home/view/edit_profile_screen.dart';
 import '../../../screen/srg/security_screen.dart';
 
@@ -19,6 +18,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   // Add state variables here if needed
   String name = "";
+  String email = "";
 
   @override
   void initState() {
@@ -31,9 +31,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _loadUserData() async {
     try {
       final name = await LocalData.getData('full_name');
+      final mail = await LocalData.getData('email');
       if (name.isNotEmpty) {
         setState(() {
           this.name = name;
+          this.email = mail;
         });
       }
       await Future.delayed(const Duration(milliseconds: 500));
@@ -53,10 +55,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color.fromARGB(41, 219, 95, 29),
         elevation: 0,
         title: Text(
-          "PROFILE",
+          "My Profile",
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.w700,
@@ -67,22 +69,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         centerTitle: true,
       ),
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color(0xFF667eea),
-              Color(0xFF764ba2),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+        decoration: BoxDecoration(
+          image: DecorationImage(
+              image: AssetImage('assets/images/bg_all.png'), fit: BoxFit.fill),
         ),
         child: SafeArea(
           child: Column(
             children: [
-              // Profile Header Section
               Container(
-                padding: const EdgeInsets.all(20),
+                color: const Color.fromARGB(41, 219, 95, 29),
+                padding: const EdgeInsets.all(10),
                 child: Column(
                   children: [
                     // Profile Avatar
@@ -99,8 +95,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           return ClipOval(
                             child: CustomImageView(
-                              width: 120.0,
-                              height: 120.0,
+                              width: 80.0,
+                              height: 80.0,
                               fit: BoxFit.cover,
                               imagePath:
                                   "${API.BASE_URL}/images/${snapshot.data}",
@@ -109,13 +105,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         },
                       ),
                     ),
-                    const SizedBox(height: 15),
-                    // User Name
+                    const SizedBox(height: 10),
                     Text(
                       name,
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: 24,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      email,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -127,8 +130,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           snapshot.data ?? "",
                           style: TextStyle(
                             color: Colors.white,
-                            fontSize: 20,
+                            fontSize: 14,
                             fontWeight: FontWeight.w600,
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 5),
+
+                    FutureBuilder(
+                      future: LocalData.getData('vip'),
+                      builder: (context, snapshot) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 4),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20),
+                            color: Colors.white,
+                          ),
+                          child: Text(
+                            snapshot.data == '1' ? "VIP" : "Regular",
+                            style: TextStyle(
+                              color: const Color.fromARGB(255, 219, 95, 29),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         );
                       },
@@ -156,7 +182,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                           // Account Detail
                           _buildMenuItem(
-                            title: 'Account Detail',
+                            title: 'Detail Akun',
                             icon: Icons.person_outline,
                             gradientColors: [
                               Color(0xFF4facfe),
@@ -165,26 +191,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             onTap: () => _navigateToEditProfile(),
                           ),
 
+                          _buildMenuItem(
+                            title: 'Lengkapi Data Diri',
+                            icon: Icons.person_add_alt_1_rounded,
+                            gradientColors: [
+                              Color(0xFF43e97b),
+                              Color(0xFF38f9d7)
+                            ],
+                            onTap: () => Get.to(KtpOCR()),
+                          ),
                           // Security
                           _buildMenuItem(
-                            title: 'Security',
+                            title: 'Ubah Kata Sandi',
                             icon: Icons.security_outlined,
                             gradientColors: [
                               Color(0xFFfa709a),
                               Color(0xFFfee140)
                             ],
                             onTap: () => _navigateToSecurity(),
-                          ),
-
-                          // Contact Us
-                          _buildMenuItem(
-                            title: 'Contact Us',
-                            icon: Icons.support_agent_outlined,
-                            gradientColors: [
-                              Color(0xFF43e97b),
-                              Color(0xFF38f9d7)
-                            ],
-                            onTap: () => _navigateToContact(),
                           ),
 
                           const SizedBox(height: 30),
@@ -213,7 +237,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               color: Colors.transparent,
                               child: InkWell(
                                 borderRadius: BorderRadius.circular(15),
-                                onTap: () => _showLogoutDialog(context),
+                                onTap: () {
+                                  DialogConstant.showConfirmationDialog(
+                                    title: "Keluar",
+                                    message:
+                                        "Apakah Anda yakin ingin keluar dari aplikasi?",
+                                    confirmText: "Keluar",
+                                    cancelText: "Batal",
+                                    icon: Icons.logout,
+                                    confirmColor: Colors.red,
+                                    onConfirm: () {
+                                      LocalData.removeAllPreference();
+                                      Get.offAll(const LoginScreen());
+                                    },
+                                    onCancel: () => Get.back(),
+                                  );
+                                },
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -339,78 +378,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _navigateToSecurity() {
     Get.to(() => SecurityScreen());
-  }
-
-  void _navigateToContact() {
-    Get.to(() => const ContactScreen());
-  }
-
-  void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Text(
-            'Confirm Logout',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 18,
-            ),
-          ),
-          content: Text(
-            'Are you sure you want to log out?',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                'Cancel',
-                style: TextStyle(
-                  color: Colors.grey[600],
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-            TextButton(
-              onPressed: () => _handleLogout(),
-              child: Text(
-                'Logout',
-                style: TextStyle(
-                  color: Color(0xFFff6b6b),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _handleLogout() async {
-    Navigator.of(context).pop();
-
-    DialogConstant.loading(context, "Logging out...");
-
-    try {
-      // Clear user data
-      await LocalData.removeAllPreference();
-
-      // Navigate to login screen
-      Get.offAll(const LoginScreen());
-    } catch (e) {
-      print('Error during logout: $e');
-      // Show error message if needed
-    } finally {
-      Get.back(); // Close the loading dialog
-    }
   }
 
   @override

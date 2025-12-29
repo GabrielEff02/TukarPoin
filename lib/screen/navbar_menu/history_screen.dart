@@ -24,7 +24,6 @@ class _HistoryScreenState extends State<HistoryScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
     fetchTransactions();
   }
 
@@ -44,12 +43,14 @@ class _HistoryScreenState extends State<HistoryScreen>
     try {
       final String username = await LocalData.getData('user');
       final String balance = await LocalData.getData('point');
-      final String balancePrev = await LocalData.getData('prev_point');
       periodeNow = jsonDecode(await LocalData.getData('current_period'));
       if (await LocalData.containsKey('previous_period')) {
         periodePrevious =
             jsonDecode(await LocalData.getData('previous_period'));
       }
+      _tabController = TabController(
+          length: periodePrevious.isNotEmpty ? 2 : 1, vsync: this);
+
       final String apiUrl = "${API.BASE_URL}/api/poin/transactions/$username";
 
       final response = await http.get(Uri.parse(apiUrl));
@@ -113,44 +114,45 @@ class _HistoryScreenState extends State<HistoryScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: Text(
-          'Riwayat Transaksi',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-            fontSize: 18,
-          ),
-        ),
-        backgroundColor: Color(0xFF2E7D32),
-        elevation: 0,
-        iconTheme: IconThemeData(color: Colors.white),
-        centerTitle: true,
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          indicatorWeight: 3,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          labelStyle: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 14,
-          ),
-          unselectedLabelStyle: TextStyle(
-            fontWeight: FontWeight.w500,
-            fontSize: 14,
-          ),
-          tabs: [
-            Tab(text: 'Periode Saat Ini'),
-            if (periodePrevious.isNotEmpty) Tab(text: 'Periode Sebelumnya'),
-          ],
-        ),
-      ),
-      body: isLoading
-          ? _buildLoadingState()
-          : TabBarView(
+    return isLoading
+        ? _buildLoadingState()
+        : Scaffold(
+            backgroundColor: Color(0xFFF8F9FA),
+            appBar: AppBar(
+              title: Text(
+                'Riwayat Transaksi',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 18,
+                ),
+              ),
+              backgroundColor: Color(0xFFF0830F),
+              elevation: 0,
+              iconTheme: IconThemeData(color: Colors.white),
+              centerTitle: true,
+              bottom: TabBar(
+                controller: _tabController,
+                indicatorColor: Colors.white,
+                indicatorWeight: 3,
+                labelColor: Colors.white,
+                unselectedLabelColor: Colors.white70,
+                labelStyle: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+                unselectedLabelStyle: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 14,
+                ),
+                tabs: [
+                  Tab(text: 'Periode Saat Ini'),
+                  if (periodePrevious.isNotEmpty)
+                    Tab(text: 'Periode Sebelumnya'),
+                ],
+              ),
+            ),
+            body: TabBarView(
               controller: _tabController,
               children: [
                 _buildTransactionTab(currentPeriodTransactions),
@@ -158,7 +160,7 @@ class _HistoryScreenState extends State<HistoryScreen>
                   _buildTransactionTab(previousPeriodTransactions, now: false),
               ],
             ),
-    );
+          );
   }
 
   Widget _buildTransactionTab(List<Map<String, dynamic>> transactions,
@@ -184,22 +186,17 @@ class _HistoryScreenState extends State<HistoryScreen>
   }
 
   Widget _buildLoadingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF2E7D32)),
-          ),
-          SizedBox(height: 16),
-          Text(
-            'Memuat data transaksi...',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 14,
+    return Container(
+      color: Colors.white,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFFF0830F)),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -241,14 +238,17 @@ class _HistoryScreenState extends State<HistoryScreen>
       margin: EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF2E7D32), Color(0xFF4CAF50)],
+          colors: [
+            Color(0xFF9A3412), // orange gelap
+            Color(0xFFF97316), // orange terang
+          ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Color(0xFF2E7D32).withOpacity(0.3),
+            color: Color(0xFF9A3412).withOpacity(0.3),
             blurRadius: 15,
             offset: Offset(0, 8),
           ),

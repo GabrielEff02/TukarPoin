@@ -149,12 +149,12 @@ class _ShowItemsScreenState extends State<ShowItemsScreen> {
     return Scaffold(
       backgroundColor: appTheme.whiteA700,
       appBar: WidgetHelper.appbarWidget(
-        () => Get.back(),
+        function: () => Get.back(),
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(name, style: CustomTextStyle.titleSmallBlack900),
+          Text(name, style: CustomTextStyle.titleSmallWhiteA700),
           Text(
             'Point: ${currencyFormatter.format(point)}',
-            style: CustomTextStyle.titleSmallBlack900,
+            style: CustomTextStyle.titleSmallWhiteA700,
           )
         ]),
       ),

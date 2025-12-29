@@ -68,20 +68,45 @@ class WidgetHelper {
     );
   }
 
-  static PreferredSizeWidget appbarWidget(Function function, Widget title,
-      {List<Widget>? actions}) {
-    return AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        leading: IconButton(
-          onPressed: () {
-            function();
-          },
-          icon: Icon(Icons.arrow_back_ios_new_rounded,
-              color: appTheme.blueGray800),
+  static PreferredSizeWidget appbarWidget(Widget title,
+      {Function? function,
+      List<Widget>? actions,
+      PreferredSizeWidget? bottom}) {
+    final double height = 80.v + (bottom != null ? 100.v : 0);
+
+    return PreferredSize(
+      preferredSize: Size.fromHeight(height),
+      child: Container(
+        margin: EdgeInsets.only(top: 20.h),
+        transform: Matrix4.translationValues(0.0, -25.h, 0),
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/images/bg_appbar.png'),
+            fit: BoxFit.none,
+          ),
         ),
-        title: title,
-        actions: actions ?? []);
+        child: SafeArea(
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            centerTitle: true,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            leading: (function != null)
+                ? IconButton(
+                    onPressed: () {
+                      function();
+                    },
+                    icon: Icon(Icons.arrow_back_ios_new_rounded,
+                        color: appTheme.whiteA700),
+                  )
+                : null,
+            title: title,
+            actions: actions ?? [],
+            bottom: bottom,
+          ),
+        ),
+      ),
+    );
   }
 
   static Future<void> showVIPModal(
